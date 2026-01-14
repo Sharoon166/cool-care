@@ -35,6 +35,6 @@ export const load: PageServerLoad = async ({ url }) => {
 	return {
 		customers: allCustomers,
 		invoiceNumber: generateInvoiceNumber(type),
-		defaultType: type
+		defaultType: type as 'invoice' | 'quotation'
 	};
 };

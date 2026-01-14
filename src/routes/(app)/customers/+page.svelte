@@ -130,7 +130,7 @@
 	<title>Customers - Cool Care</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-7xl px-4 py-8">
+<div >
 	<!-- Header -->
 	<div class="mb-8 space-y-6">
 		<PageHeader title="Customers" description="Manage your customer database">
@@ -143,47 +143,47 @@
 		<!-- Stats Cards -->
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 			<!-- Total Customers -->
-			<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+			<div class="flex items-center gap-3 rounded-lg border  p-4">
 				<div class="grid size-16 place-content-center rounded-full bg-gray-100 p-6 text-gray-500">
 					<Users />
 				</div>
 				<div class="space-y-2">
-					<span class="text-sm text-gray-600">Total Customers</span>
+					<span class="text-sm text-muted-foreground">Total Customers</span>
 					<div class="mt-1 text-3xl font-bold text-gray-900">{stats.total}</div>
 				</div>
 			</div>
 
 			<!-- Active -->
-			<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+			<div class="flex items-center gap-3 rounded-lg border  p-4">
 				<div class="grid size-16 place-content-center rounded-full bg-green-100 p-6 text-green-500">
 					<CircleDashedCheck />
 				</div>
 				<div class="space-y-2">
-					<span class="text-sm text-gray-600">Active</span>
+					<span class="text-sm text-muted-foreground">Active</span>
 					<div class="mt-1 text-3xl font-bold text-green-600">{stats.active}</div>
 				</div>
 			</div>
 
 			<!-- Inactive -->
-			<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+			<div class="flex items-center gap-3 rounded-lg border  p-4">
 				<div class="grid size-16 place-content-center rounded-full bg-gray-100 p-6 text-gray-400">
 					<CircleOff />
 				</div>
 				<div class="space-y-2">
-					<span class="text-sm text-gray-600">Inactive</span>
+					<span class="text-sm text-muted-foreground">Inactive</span>
 					<div class="mt-1 text-3xl font-bold text-gray-500">{stats.inactive}</div>
 				</div>
 			</div>
 
 			<!-- VIP Customers -->
-			<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+			<div class="flex items-center gap-3 rounded-lg border  p-4">
 				<div
 					class="grid size-16 place-content-center rounded-full bg-purple-100 p-6 text-purple-500"
 				>
 					<Crown />
 				</div>
 				<div class="space-y-2">
-					<span class="text-sm text-gray-600">VIP Customers</span>
+					<span class="text-sm text-muted-foreground">VIP Customers</span>
 					<div class="mt-1 text-3xl font-bold text-purple-600">{stats.vip}</div>
 				</div>
 			</div>
@@ -226,10 +226,11 @@
 	</div>
 
 	<!-- Customer Table -->
-	<div class="overflow-hidden rounded-lg border border-gray-200">
+	<div class="overflow-hidden rounded-lg border ">
 		<Table>
 			<TableHeader>
 				<TableRow>
+					<TableHead>#</TableHead>
 					<TableHead class="w-[300px]">Customer</TableHead>
 					<TableHead>Contact</TableHead>
 					<TableHead>Location</TableHead>
@@ -239,8 +240,11 @@
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{#each filteredCustomers as customer (customer.id)}
+				{#each filteredCustomers as customer, index (customer.id)}
 					<TableRow>
+						<TableCell class="font-medium">
+							<div>{index+1}.</div>
+						</TableCell>
 						<TableCell class="font-medium">
 							<div>{customer.name}</div>
 							{#if customer.companyName}

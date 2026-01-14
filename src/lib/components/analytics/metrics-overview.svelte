@@ -113,14 +113,14 @@
 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 	{#each metrics as metric}
 		<!-- KPI Card with Dashboard Style -->
-		<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+		<div class="flex items-center gap-3 rounded-lg border  p-4">
 			<div
 				class="grid size-16 place-content-center rounded-full {metric.bgColor} p-6 {metric.textColor}"
 			>
 				<metric.icon />
 			</div>
 			<div class="flex-1 space-y-2">
-				<span class="text-sm text-gray-600">{metric.title}</span>
+				<span class="text-sm text-muted-foreground">{metric.title}</span>
 				<div class="mt-1 text-3xl font-bold {metric.valueColor}">
 					{metric.value}
 				</div>

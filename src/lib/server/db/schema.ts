@@ -94,6 +94,7 @@ export type InvoiceItem = {
 	rate: number;
 	amount: number;
 	notes?: string;
+	isService?: boolean; // For items that don't require quantity (labor, service charges, etc.)
 };
 
 export const payments = pgTable('payments', {

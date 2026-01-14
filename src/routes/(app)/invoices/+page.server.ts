@@ -1,9 +1,10 @@
 import { db } from '$lib/server/db';
-import { invoices, customers } from '$lib/server/db/schema';
+import { invoices, customers, payments } from '$lib/server/db/schema';
 import { invoiceSchema } from '$lib/validations/invoice';
 import { fail } from '@sveltejs/kit';
-import { eq, isNull, desc } from 'drizzle-orm';
+import { eq, isNull, desc, and } from 'drizzle-orm';
 import { addPayment, deletePayment } from '$lib/server/payment-actions';
+import { createId } from '@paralleldrive/cuid2';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -28,8 +29,20 @@ export const load: PageServerLoad = async () => {
 		.where(isNull(invoices.deletedAt))
 		.orderBy(desc(invoices.createdAt));
 
+	// Calculate stats on the backend
+	const stats = {
+		total: allInvoices.length,
+		invoices: allInvoices.filter((i) => i.type === 'invoice').length,
+		quotations: allInvoices.filter((i) => i.type === 'quotation').length,
+		totalValue: allInvoices.filter((i) => i.type === 'invoice').reduce((sum, i) => sum + parseFloat(i.total), 0),
+		paid: allInvoices.filter((i) => i.status === 'paid').length,
+		pending: allInvoices.filter((i) => i.status === 'sent' || i.status === 'draft').length,
+		overdue: allInvoices.filter((i) => i.status === 'overdue').length
+	};
+
 	return {
-		invoices: allInvoices
+		invoices: allInvoices,
+		stats
 	};
 };
 
@@ -80,8 +93,12 @@ export const actions: Actions = {
 					? (subtotal * result.data.discountValue) / 100
 					: result.data.discountValue;
 			const total = subtotal - discountAmount;
-			// Initial balance = total + previous - advance payment (paid field is now advance payment)
-			const balance = total + result.data.previous - result.data.paid;
+			
+			// Advance payment amount
+			const advancePayment = result.data.paid;
+			
+			// Initial balance = total + previous - advance payment
+			const balance = total + result.data.previous - advancePayment;
 
 			// Insert invoice
 			const [newInvoice] = await db
@@ -98,19 +115,32 @@ export const actions: Actions = {
 					discountAmount: discountAmount.toString(),
 					total: total.toString(),
 					previous: result.data.previous.toString(),
-					paid: result.data.paid.toString(),
-					totalPaid: '0', // Start with no payments
+					paid: advancePayment.toString(),
+					totalPaid: advancePayment.toString(), // Set to advance payment amount
 					balance: balance.toString(),
 					status: 'draft', // Always start as draft
 					notes: result.data.notes
 				})
 				.returning();
 
+			// If there's an advance payment, create a payment record
+			if (advancePayment > 0) {
+				await db.insert(payments).values({
+					id: createId(),
+					invoiceId: newInvoice.id,
+					amount: advancePayment.toString(),
+					paymentDate: new Date(result.data.invoiceDate), // Use invoice date for advance payment
+					paymentMethod: 'cash', // Default to cash for advance payments
+					notes: 'Advance payment received at invoice creation'
+				});
+			}
+
 			return {
 				success: true,
 				invoice: newInvoice
 			};
-		} catch {
+		} catch (error) {
+			console.error('Database error:', error);
 			return fail(500, {
 				error: 'Failed to create invoice',
 				data
@@ -155,11 +185,12 @@ export const actions: Actions = {
 		}
 
 		try {
-			// Get current invoice to preserve status if not provided
+			// Get current invoice to preserve status and check existing advance payment
 			const [currentInvoice] = await db
 				.select({
 					status: invoices.status,
-					totalPaid: invoices.totalPaid
+					totalPaid: invoices.totalPaid,
+					paid: invoices.paid // Current advance payment amount
 				})
 				.from(invoices)
 				.where(eq(invoices.id, id));
@@ -180,9 +211,14 @@ export const actions: Actions = {
 			const total = subtotal - discountAmount;
 
 			const currentTotalPaid = parseFloat(currentInvoice.totalPaid || '0');
+			const currentAdvancePayment = parseFloat(currentInvoice.paid || '0');
+			const newAdvancePayment = result.data.paid;
 
-			// Balance = total + previous - advance payment - total paid from payments
-			const balance = total + result.data.previous - result.data.paid - currentTotalPaid;
+			// Calculate new total paid: current total paid - old advance + new advance
+			const newTotalPaid = currentTotalPaid - currentAdvancePayment + newAdvancePayment;
+
+			// Balance = total + previous - new total paid
+			const balance = total + result.data.previous - newTotalPaid;
 
 			const [updatedInvoice] = await db
 				.update(invoices)
@@ -198,7 +234,8 @@ export const actions: Actions = {
 					discountAmount: discountAmount.toString(),
 					total: total.toString(),
 					previous: result.data.previous.toString(),
-					paid: result.data.paid.toString(),
+					paid: newAdvancePayment.toString(),
+					totalPaid: newTotalPaid.toString(),
 					balance: balance.toString(),
 					status: result.data.status || currentInvoice.status,
 					notes: result.data.notes,
@@ -206,6 +243,31 @@ export const actions: Actions = {
 				})
 				.where(eq(invoices.id, id))
 				.returning();
+
+			// Handle advance payment changes
+			if (newAdvancePayment !== currentAdvancePayment) {
+				// First, delete any existing advance payment record
+				if (currentAdvancePayment > 0) {
+					await db.delete(payments).where(
+						and(
+							eq(payments.invoiceId, id),
+							eq(payments.notes, 'Advance payment received at invoice creation')
+						)
+					);
+				}
+
+				// Create new advance payment record if there's an advance payment
+				if (newAdvancePayment > 0) {
+					await db.insert(payments).values({
+						id: createId(),
+						invoiceId: id,
+						amount: newAdvancePayment.toString(),
+						paymentDate: new Date(result.data.invoiceDate),
+						paymentMethod: 'cash',
+						notes: 'Advance payment received at invoice creation'
+					});
+				}
+			}
 
 			return {
 				success: true,

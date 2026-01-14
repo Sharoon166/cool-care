@@ -78,6 +78,7 @@
 		payments={data.payments}
 		onInvoiceSelect={handleInvoiceSelect}
 		readonly
+		customerId={data.customer.id}
 	/>
 </div>
 

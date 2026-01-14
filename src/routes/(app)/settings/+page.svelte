@@ -7,9 +7,10 @@
 	import { toast } from 'svelte-sonner';
 	import SaveIcon from '@tabler/icons-svelte/icons/device-floppy';
 	import UserIcon from '@tabler/icons-svelte/icons/user';
-	import MailIcon from '@tabler/icons-svelte/icons/mail';
 	import LockIcon from '@tabler/icons-svelte/icons/lock';
+	import KeyIcon from '@tabler/icons-svelte/icons/key';
 	import PageHeader from '$lib/components/page-header.svelte';
+	import At from '@tabler/icons-svelte/icons/at';
 
 	let { data, form } = $props();
 
@@ -56,7 +57,7 @@
 	<PageHeader title="Settings" description="Manage your account settings and preferences" />
 </div>
 
-<div class="mx-auto grid w-full gap-6 space-y-8 px-4 *:h-full md:grid-cols-2 lg:px-6">
+<div class="mx-auto grid w-full gap-6 space-y-8 px-4 *:h-full lg:grid-cols-2 lg:px-6">
 	<!-- Profile Settings -->
 	<Card.Root>
 		<Card.Header>
@@ -84,17 +85,23 @@
 				}}
 				class="space-y-6"
 			>
-				<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+				<div class="space-y-4">
 					<div class="space-y-2">
 						<Label for="name">Full Name</Label>
-						<Input
-							id="name"
-							name="name"
-							type="text"
-							bind:value={profileData.name}
-							placeholder="Enter your full name"
-							required
-						/>
+						<div class="relative">
+							<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+								<UserIcon class="h-5 w-5 text-gray-400" />
+							</div>
+							<Input
+								id="name"
+								name="name"
+								type="text"
+								bind:value={profileData.name}
+								placeholder="Enter your full name"
+								class="pl-10"
+								required
+							/>
+						</div>
 						{#if form?.errors && 'name' in form.errors && form.errors.name}
 							<p class="mt-1 text-sm text-red-600">{form.errors.name[0]}</p>
 						{/if}
@@ -102,28 +109,42 @@
 
 					<div class="space-y-2">
 						<Label for="email">Email Address</Label>
-						<Input
-							id="email"
-							name="email"
-							type="email"
-							bind:value={profileData.email}
-							placeholder="Enter your email"
-							required
-						/>
+						<div class="relative">
+							<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+								<At class="h-5 w-5 text-gray-400" />
+							</div>
+							<Input
+								id="email"
+								name="email"
+								type="email"
+								bind:value={profileData.email}
+								placeholder="Enter your email"
+								class="pl-10"
+								required
+							/>
+						</div>
 						{#if form?.errors && 'email' in form.errors && form.errors.email}
 							<p class="mt-1 text-sm text-red-600">{form.errors.email[0]}</p>
 						{/if}
 					</div>
 
-					<div class="md:col-span-2">
+					<div class="space-y-2">
 						<Label for="username">Username</Label>
-						<Input
-							id="username"
-							name="username"
-							type="text"
-							bind:value={profileData.username}
-							placeholder="Enter your username"
-						/>
+						<div class="relative">
+							<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+									<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+								</svg>
+							</div>
+							<Input
+								id="username"
+								name="username"
+								type="text"
+								bind:value={profileData.username}
+								placeholder="Enter your username"
+								class="pl-10"
+							/>
+						</div>
 						{#if form?.errors && 'username' in form.errors && form.errors.username}
 							<p class="mt-1 text-sm text-red-600">{form.errors.username[0]}</p>
 						{/if}
@@ -177,12 +198,16 @@
 					<div class="space-y-2">
 						<Label for="currentPassword">Current Password</Label>
 						<div class="relative">
+							<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+								<LockIcon class="h-5 w-5 text-gray-400" />
+							</div>
 							<Input
 								id="currentPassword"
 								name="currentPassword"
 								type={showCurrentPassword ? 'text' : 'password'}
 								bind:value={passwordData.currentPassword}
 								placeholder="Enter your current password"
+								class="pl-10 pr-10"
 								required
 							/>
 							<button
@@ -235,12 +260,16 @@
 					<div class="space-y-2">
 						<Label for="newPassword">New Password</Label>
 						<div class="relative">
+							<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+								<KeyIcon class="h-5 w-5 text-gray-400" />
+							</div>
 							<Input
 								id="newPassword"
 								name="newPassword"
 								type={showNewPassword ? 'text' : 'password'}
 								bind:value={passwordData.newPassword}
 								placeholder="Enter your new password"
+								class="pl-10 pr-10"
 								required
 							/>
 							<button
@@ -293,12 +322,16 @@
 					<div class="space-y-2">
 						<Label for="confirmPassword">Confirm New Password</Label>
 						<div class="relative">
+							<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+								<LockIcon class="h-5 w-5 text-gray-400" />
+							</div>
 							<Input
 								id="confirmPassword"
 								name="confirmPassword"
 								type={showConfirmPassword ? 'text' : 'password'}
 								bind:value={passwordData.confirmPassword}
 								placeholder="Confirm your new password"
+								class="pl-10 pr-10"
 								required
 							/>
 							<button

@@ -12,12 +12,12 @@
 	<title>Dashboard - Cool Care</title>
 </svelte:head>
 
-<div class="mb-10 pl-6">
+<div class="mb-10">
 	<PageHeader title="Welcome back" description="View and manage all operations" />
 </div>
 
 <SectionCards {data} />
-<div class="space-y-6 px-4 lg:px-6">
+<div class="space-y-6">
 	<div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 		<TopCustomers {data} />
 		<RecentActivity {data} />

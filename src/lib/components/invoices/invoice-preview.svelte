@@ -148,12 +148,12 @@
 				<div class="w-80">
 					<div class="space-y-2">
 						<div class="flex justify-between">
-							<span class="text-gray-600">Subtotal:</span>
+							<span class="text-muted-foreground">Subtotal:</span>
 							<span class="font-medium">{formatPKR.compact(subtotal)}</span>
 						</div>
 						{#if discountAmount > 0}
 							<div class="flex justify-between">
-								<span class="text-gray-600"
+								<span class="text-muted-foreground"
 									>Discount ({invoice.discountType === 'percentage'
 										? `${invoice.discountValue}%`
 										: 'Fixed'}):</span
@@ -163,7 +163,7 @@
 						{/if}
 						{#if tax !== 0}
 							<div class="flex justify-between">
-								<span class="text-gray-600">Tax:</span>
+								<span class="text-muted-foreground">Tax:</span>
 								<span class="font-medium">{formatPKR.compact(Math.abs(tax))}</span>
 							</div>
 						{/if}

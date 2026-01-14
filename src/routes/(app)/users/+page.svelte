@@ -60,7 +60,7 @@
 	<title>Users - Cool Care</title>
 </svelte:head>
 
-<div class="mb-8 container mx-auto max-w-7xl  px-4 py-8">
+<div class="mb-8 container mx-auto max-w-7xl ">
 	<PageHeader title="Users" description="Manage user accounts and permissions">
 		<Button onclick={openCreateDialog}>
 			<PlusIcon class="mr-2 h-4 w-4" />
@@ -69,7 +69,7 @@
 	</PageHeader>
 </div>
 
-<div class="mx-auto w-full px-4 lg:px-6">
+<div class="mx-auto w-full">
 
 			{#if data.users && data.users.length > 0}
 				<Table.Root>

@@ -21,6 +21,8 @@
 	import { formatPKR } from '$lib/utils';
 	import PaymentForm from '$lib/components/invoices/payment-form.svelte';
 	import { ConfirmDeleteDialog, confirmDelete } from '$lib/components/ui/confirm-delete-dialog';
+	import { formatDate } from '$lib/utils';
+	import { toast } from 'svelte-sonner';
 
 	let { data } = $props();
 
@@ -31,10 +33,10 @@
 	let payments = $derived(data.payments);
 
 	let subtotal = $derived(parseFloat(invoice.subtotal));
-	let discountAmount = $derived(parseFloat(invoice.discountAmount));
+	let discountAmount = $derived(parseFloat(invoice.discountAmount || '0'));
 	let total = $derived(parseFloat(invoice.total));
-	let previous = $derived(parseFloat(invoice.previous));
-	let totalPaid = $derived(parseFloat(invoice.totalPaid));
+	let previous = $derived(parseFloat(invoice.previous || '0'));
+	let totalPaid = $derived(parseFloat(invoice.totalPaid || '0'));
 	let balance = $derived(parseFloat(invoice.balance));
 
 	let maxPaymentAmount = $derived(balance);
@@ -60,10 +62,14 @@
 			});
 
 			if (response.ok) {
+				toast.success('Payment deleted successfully');
 				await invalidateAll();
+			} else {
+				toast.error('Failed to delete payment');
 			}
 		} catch (error) {
 			console.error('Failed to delete payment:', error);
+			toast.error('An error occurred while deleting payment');
 		}
 	}
 
@@ -169,11 +175,11 @@
 		<!-- Invoice Details -->
 		<div class="space-y-6 lg:col-span-2">
 			<!-- Invoice Header -->
-			<div class="rounded-lg border border-gray-200 p-6">
+			<div class="rounded-lg border  p-6">
 				<div class="mb-4 flex items-center justify-between">
 					<div>
 						<h2 class="text-2xl font-bold text-gray-900">{invoice.invoiceNumber}</h2>
-						<p class="text-gray-600">
+						<p class="text-muted-foreground">
 							{new Date(invoice.invoiceDate).toLocaleDateString('en-PK', {
 								year: 'numeric',
 								month: 'long',
@@ -185,14 +191,14 @@
 						<Badge variant={getStatusBadgeVariant(invoice.status)} class="mb-2 capitalize">
 							{invoice.status}
 						</Badge>
-						<p class="text-sm text-gray-600 capitalize">{invoice.type}</p>
+						<p class="text-sm text-muted-foreground capitalize">{invoice.type}</p>
 					</div>
 				</div>
 
 				<!-- Customer Info -->
 				<div class="border-t pt-4">
 					<h3 class="mb-2 font-semibold text-gray-900">Customer Information</h3>
-					<div class="text-sm text-gray-600">
+					<div class="text-sm text-muted-foreground">
 						<p class="font-medium text-gray-900">{invoice.customerName}</p>
 						{#if invoice.customerCompany}
 							<p>{invoice.customerCompany}</p>
@@ -208,11 +214,11 @@
 			</div>
 
 			<!-- Invoice Items -->
-			<div class="rounded-lg border border-gray-200 p-6">
+			<div class="rounded-lg border  p-6">
 				<h3 class="mb-4 font-semibold text-gray-900">Items</h3>
 				<div class="overflow-x-auto">
 					<table class="w-full border-collapse">
-						<thead class="border-b border-gray-200">
+						<thead class="border-b ">
 							<tr class="text-left">
 								<th class="pb-2 font-medium text-gray-900">Description</th>
 								<th class="pb-2 text-center font-medium text-gray-900">Qty</th>
@@ -244,16 +250,16 @@
 		<div class="space-y-6">
 			{#if invoice.type === 'quotation'}
 				<!-- Quotation Summary -->
-				<div class="rounded-lg border border-gray-200 p-6">
+				<div class="rounded-lg border  p-6">
 					<h3 class="mb-4 font-semibold text-gray-900">Quotation Summary</h3>
 					<div class="space-y-3">
 						<div class="flex justify-between">
-							<span class="text-gray-600">Subtotal:</span>
+							<span class="text-muted-foreground">Subtotal:</span>
 							<span class="font-medium">{formatPKR.compact(subtotal)}</span>
 						</div>
 						{#if discountAmount > 0}
 							<div class="flex justify-between">
-								<span class="text-gray-600">Discount:</span>
+								<span class="text-muted-foreground">Discount:</span>
 								<span class="font-medium text-red-600">-{formatPKR.compact(discountAmount)}</span>
 							</div>
 						{/if}
@@ -263,7 +269,7 @@
 						</div>
 						{#if previous > 0}
 							<div class="flex justify-between">
-								<span class="text-gray-600">Previous Balance:</span>
+								<span class="text-muted-foreground">Previous Balance:</span>
 								<span class="font-medium">+{formatPKR.compact(previous)}</span>
 							</div>
 						{/if}
@@ -300,16 +306,16 @@
 				</div>
 			{:else}
 				<!-- Invoice Payment Summary -->
-				<div class="rounded-lg border border-gray-200 p-6">
+				<div class="rounded-lg border  p-6">
 					<h3 class="mb-4 font-semibold text-gray-900">Payment Summary</h3>
 					<div class="space-y-3">
 						<div class="flex justify-between">
-							<span class="text-gray-600">Subtotal:</span>
+							<span class="text-muted-foreground">Subtotal:</span>
 							<span class="font-medium">{formatPKR.compact(subtotal)}</span>
 						</div>
 						{#if discountAmount > 0}
 							<div class="flex justify-between">
-								<span class="text-gray-600">Discount:</span>
+								<span class="text-muted-foreground">Discount:</span>
 								<span class="font-medium text-red-600">-{formatPKR.compact(discountAmount)}</span>
 							</div>
 						{/if}
@@ -319,7 +325,7 @@
 						</div>
 						{#if previous > 0}
 							<div class="flex justify-between">
-								<span class="text-gray-600">Previous:</span>
+								<span class="text-muted-foreground">Previous:</span>
 								<span class="font-medium">+{formatPKR.compact(previous)}</span>
 							</div>
 						{/if}
@@ -346,7 +352,7 @@
 				</div>
 
 				<!-- Payment History -->
-				<div class="rounded-lg border border-gray-200 p-6">
+				<div class="rounded-lg border  p-6">
 					<div class="mb-4 flex items-center justify-between">
 						<h3 class="font-semibold text-gray-900">Payment History</h3>
 						<CreditCard class="h-5 w-5 text-gray-400" />
@@ -360,8 +366,8 @@
 								<div class="flex items-center justify-between rounded-lg bg-gray-50 p-3">
 									<div class="flex-1">
 										<div class="font-medium">{formatPKR.compact(parseFloat(payment.amount))}</div>
-										<div class="text-sm text-gray-600">
-											{new Date(payment.paymentDate).toLocaleDateString('en-PK')} • {getPaymentMethodDisplay(
+										<div class="text-sm text-muted-foreground">
+											{formatDate.short(payment.paymentDate)} • {getPaymentMethodDisplay(
 												payment
 											)}
 										</div>

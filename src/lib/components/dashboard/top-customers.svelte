@@ -5,6 +5,7 @@
 	import DollarSignIcon from '@lucide/svelte/icons/dollar-sign';
 	import FileTextIcon from '@lucide/svelte/icons/file-text';
 	import { formatPKR } from '@//utils';
+	import ArrowUpRight from '@tabler/icons-svelte/icons/arrow-up-right';
 
 	let { data } = $props();
 
@@ -14,8 +15,8 @@
 <Card.Root>
 	<Card.Header>
 		<Card.Title class="flex items-center gap-2">
-			<UserIcon class="h-5 w-5" />
-			Top Customers
+				<UserIcon class="h-5 w-5" />
+				Top Customers
 		</Card.Title>
 		<Card.Description>Highest revenue customers</Card.Description>
 	</Card.Header>
@@ -28,7 +29,7 @@
 		{:else}
 			{#each data.topCustomers as customer, index}
 				<div
-					class="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
+					class="group flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
 				>
 					<div class="flex items-center gap-3">
 						<div class="flex-shrink-0">

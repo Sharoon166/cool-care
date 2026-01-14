@@ -7,7 +7,7 @@
 	let { data } = $props();
 </script>
 
-<div class="container mx-auto max-w-7xl px-4 py-8">
+<div >
 	<!-- Header -->
 	<div class="mb-8">
 		<PageHeader title="Edit Invoice" description={`Edit invoice ${data.invoice.invoiceNumber}`}>
@@ -19,7 +19,7 @@
 	</div>
 
 	<!-- Form -->
-	<div class="rounded-lg border border-gray-200 p-6">
+	<div class="rounded-lg border  p-6">
 		<InvoiceForm
 			customers={data.customers}
 			invoiceNumber={data.invoice.invoiceNumber}

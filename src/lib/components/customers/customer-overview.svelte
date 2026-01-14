@@ -62,12 +62,12 @@
 	<!-- Business Metrics -->
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-3">
 		<!-- Total Revenue -->
-		<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+		<div class="flex items-center gap-3 rounded-lg border  p-4">
 			<div class="grid size-12 place-content-center rounded-full bg-green-100 p-3 text-green-500">
 				<CurrencyDollarIcon class="h-6 w-6" />
 			</div>
 			<div class="space-y-1">
-				<span class="text-xs text-gray-600">Total Revenue</span>
+				<span class="text-xs text-muted-foreground">Total Revenue</span>
 				<div class="text-xl font-bold text-green-600">
 					{formatPKR.compact(metrics.totalRevenue)}
 				</div>
@@ -75,12 +75,12 @@
 		</div>
 
 		<!-- Total Invoices -->
-		<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+		<div class="flex items-center gap-3 rounded-lg border  p-4">
 			<div class="grid size-12 place-content-center rounded-full bg-blue-100 p-3 text-blue-500">
 				<ReceiptIcon class="h-6 w-6" />
 			</div>
 			<div class="space-y-1">
-				<span class="text-xs text-gray-600">Total Invoices</span>
+				<span class="text-xs text-muted-foreground">Total Invoices</span>
 				<div class="text-xl font-bold text-blue-600">
 					{formatNumber(metrics.totalInvoices)}
 				</div>
@@ -88,12 +88,12 @@
 		</div>
 
 		<!-- Total Quotations -->
-		<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+		<div class="flex items-center gap-3 rounded-lg border  p-4">
 			<div class="grid size-12 place-content-center rounded-full bg-purple-100 p-3 text-purple-500">
 				<FileTextIcon class="h-6 w-6" />
 			</div>
 			<div class="space-y-1">
-				<span class="text-xs text-gray-600">Quotations</span>
+				<span class="text-xs text-muted-foreground">Quotations</span>
 				<div class="text-xl font-bold text-purple-600">
 					{formatNumber(metrics.totalQuotations)}
 				</div>
@@ -101,14 +101,14 @@
 		</div>
 
 		<!-- Total Paid -->
-		<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+		<div class="flex items-center gap-3 rounded-lg border  p-4">
 			<div
 				class="grid size-12 place-content-center rounded-full bg-emerald-100 p-3 text-emerald-500"
 			>
 				<CurrencyDollarIcon class="h-6 w-6" />
 			</div>
 			<div class="space-y-1">
-				<span class="text-xs text-gray-600">Total Paid</span>
+				<span class="text-xs text-muted-foreground">Total Paid</span>
 				<div class="text-xl font-bold text-emerald-600">
 					{formatPKR.compact(metrics.totalPaid)}
 				</div>
@@ -116,12 +116,12 @@
 		</div>
 
 		<!-- Outstanding Amount -->
-		<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+		<div class="flex items-center gap-3 rounded-lg border  p-4">
 			<div class="grid size-12 place-content-center rounded-full bg-orange-100 p-3 text-orange-500">
 				<CurrencyDollarIcon class="h-6 w-6" />
 			</div>
 			<div class="space-y-1">
-				<span class="text-xs text-gray-600">Outstanding</span>
+				<span class="text-xs text-muted-foreground">Outstanding</span>
 				<div class="text-xl font-bold text-orange-600">
 					{formatPKR.compact(metrics.totalOutstanding)}
 				</div>
@@ -129,12 +129,12 @@
 		</div>
 
 		<!-- Average Invoice Value -->
-		<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+		<div class="flex items-center gap-3 rounded-lg border  p-4">
 			<div class="grid size-12 place-content-center rounded-full bg-indigo-100 p-3 text-indigo-500">
 				<ReceiptIcon class="h-6 w-6" />
 			</div>
 			<div class="space-y-1">
-				<span class="text-xs text-gray-600">Avg Invoice</span>
+				<span class="text-xs text-muted-foreground">Avg Invoice</span>
 				<div class="text-xl font-bold text-indigo-600">
 					{formatPKR.compact(metrics.avgInvoiceValue)}
 				</div>

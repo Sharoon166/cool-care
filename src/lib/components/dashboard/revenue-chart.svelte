@@ -6,6 +6,8 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { DatePicker } from '$lib/components/ui/date-picker';
+	import { CalendarDate, type DateValue } from '@internationalized/date';
 	import { Area, AreaChart } from 'layerchart';
 	import { scaleTime } from 'd3-scale';
 	import { curveNatural } from 'd3-shape';
@@ -52,9 +54,18 @@
 
 	// Time range state
 	let timeRange = $state<TimeRange>('12m');
-	let customDateRange = $state({
-		from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-		to: new Date().toISOString().split('T')[0]
+	let customDateRange = $state<{
+		from: DateValue | undefined;
+		to: DateValue | undefined;
+	}>({
+		from: (() => {
+			const date = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+			return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+		})(),
+		to: (() => {
+			const date = new Date();
+			return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+		})()
 	});
 	let showCustomCalendar = $state(false);
 
@@ -70,9 +81,11 @@
 
 		if (customFrom && customTo && timeRange === 'custom') {
 			try {
+				const fromDate = new Date(customFrom);
+				const toDate = new Date(customTo);
 				customDateRange = {
-					from: new Date(customFrom).toISOString().split('T')[0],
-					to: new Date(customTo).toISOString().split('T')[0]
+					from: new CalendarDate(fromDate.getFullYear(), fromDate.getMonth() + 1, fromDate.getDate()),
+					to: new CalendarDate(toDate.getFullYear(), toDate.getMonth() + 1, toDate.getDate())
 				};
 			} catch (e) {
 				// Invalid date format, keep defaults
@@ -99,10 +112,14 @@
 				filterStartDate = new Date(now.getFullYear(), now.getMonth() - 12, 1);
 				break;
 			case 'custom':
-				filterStartDate = new Date(customDateRange.from);
-				filterEndDate = new Date(customDateRange.to);
-				// Ensure end date includes the full day
-				filterEndDate.setHours(23, 59, 59, 999);
+				if (customDateRange.from && customDateRange.to) {
+					filterStartDate = customDateRange.from.toDate('UTC');
+					filterEndDate = customDateRange.to.toDate('UTC');
+					// Ensure end date includes the full day
+					filterEndDate.setHours(23, 59, 59, 999);
+				} else {
+					return chartData;
+				}
 				break;
 			default:
 				return chartData;
@@ -126,9 +143,12 @@
 			case '12m':
 				return 'Last 12 months';
 			case 'custom':
-				const fromDate = new Date(customDateRange.from);
-				const toDate = new Date(customDateRange.to);
-				return `${fromDate.toLocaleDateString()} - ${toDate.toLocaleDateString()}`;
+				if (customDateRange.from && customDateRange.to) {
+					const fromDate = customDateRange.from.toDate('UTC');
+					const toDate = customDateRange.to.toDate('UTC');
+					return `${fromDate.toLocaleDateString()} - ${toDate.toLocaleDateString()}`;
+				}
+				return 'Custom range';
 			default:
 				return 'Last 12 months';
 		}
@@ -152,17 +172,21 @@
 	}
 
 	function updateCustomRangeInUrl() {
+		if (!customDateRange.from || !customDateRange.to) return;
+		
 		const url = new URL($page.url);
 		url.searchParams.set('timeRange', 'custom');
-		url.searchParams.set('customFrom', new Date(customDateRange.from).toISOString());
-		url.searchParams.set('customTo', new Date(customDateRange.to).toISOString());
+		url.searchParams.set('customFrom', customDateRange.from.toDate('UTC').toISOString());
+		url.searchParams.set('customTo', customDateRange.to.toDate('UTC').toISOString());
 		goto(url.toString(), { replaceState: true, noScroll: true, keepFocus: true });
 	}
 
 	function handleCustomDateChange() {
+		if (!customDateRange.from || !customDateRange.to) return;
+
 		// Validate date range
-		const fromDate = new Date(customDateRange.from);
-		const toDate = new Date(customDateRange.to);
+		const fromDate = customDateRange.from.toDate('UTC');
+		const toDate = customDateRange.to.toDate('UTC');
 
 		if (fromDate > toDate) {
 			// Swap dates if from is after to
@@ -252,22 +276,12 @@
 							<div class="grid gap-4">
 								<div class="space-y-2">
 									<Label for="from-date-desktop" class="text-sm font-medium">From Date</Label>
-									<Input
-										id="from-date-desktop"
-										type="date"
-										bind:value={customDateRange.from}
-										class="w-full"
-									/>
+									<DatePicker bind:value={customDateRange.from} class="w-full" />
 								</div>
 
 								<div class="space-y-2">
 									<Label for="to-date-desktop" class="text-sm font-medium">To Date</Label>
-									<Input
-										id="to-date-desktop"
-										type="date"
-										bind:value={customDateRange.to}
-										class="w-full"
-									/>
+									<DatePicker bind:value={customDateRange.to} class="w-full" />
 								</div>
 
 								<Button onclick={handleCustomDateChange} class="w-full">Apply Date Range</Button>
@@ -281,7 +295,7 @@
 
 	<Card.Content class="px-2 pt-4 sm:px-6 sm:pt-6">
 		{#if !filteredData || filteredData.length === 0}
-			<div class="flex h-[300px] flex-col items-center justify-center text-center">
+			<div class="flex h-75 flex-col items-center justify-center text-center">
 				<svg
 					class="mb-4 h-12 w-12 text-muted-foreground"
 					fill="none"
@@ -315,7 +329,7 @@
 			</div>
 		{:else}
 			<div class="space-y-6">
-				<div class="ml-16 h-[300px]">
+				<div class="ml-16 h-75">
 					<AreaChart
 						data={filteredData}
 						x="date"
@@ -388,8 +402,8 @@
 						{#snippet marks({ series, getAreaProps })}
 							<defs>
 								<linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-									<stop offset="5%" stop-color="hsl(var(--primary))" stop-opacity={0.8} />
-									<stop offset="95%" stop-color="hsl(var(--primary))" stop-opacity={0.1} />
+									<stop offset="5%" stop-color="hsl(var(--chart-1))" stop-opacity={0.8} />
+									<stop offset="95%" stop-color="hsl(var(--chart-2))" stop-opacity={0.1} />
 								</linearGradient>
 							</defs>
 							{#each series as s, i (s.key)}

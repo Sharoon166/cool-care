@@ -12,10 +12,10 @@
 >
 	<SiteHeader />
 	<div class="flex flex-1">
-		<AppSidebar variant="floating" />
+		<AppSidebar variant="inset" />
 		<Sidebar.Inset>
 			<div class="flex flex-1 flex-col">
-				<div class="@container/main flex flex-1 flex-col gap-2 px-2 py-6">
+				<div class="@container/main flex flex-1 flex-col gap-2 px-4 md:px-6 py-16">
 					{@render children()}
 				</div>
 			</div>

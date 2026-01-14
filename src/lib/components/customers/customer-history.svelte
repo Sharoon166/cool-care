@@ -8,7 +8,7 @@
 	import EyeIcon from '@tabler/icons-svelte/icons/eye';
 	import DownloadIcon from '@tabler/icons-svelte/icons/download';
 
-	let { invoices, quotations, payments, onInvoiceSelect, readonly = false } = $props();
+	let { invoices, quotations, payments, onInvoiceSelect, readonly = false, customerId = null } = $props();
 
 	function getStatusColor(status: string) {
 		switch (status.toLowerCase()) {
@@ -81,11 +81,17 @@
 											>
 												<EyeIcon class="h-4 w-4" />
 											</Button>
-											{#if !readonly}
-												<Button size="sm" variant="outline" title="Download PDF">
-													<DownloadIcon class="h-4 w-4" />
-												</Button>
-											{/if}
+											<Button 
+												size="sm" 
+												variant="outline" 
+												title="Download PDF"
+												href={readonly && customerId 
+													? `/info/${customerId}/invoice/${invoice.id}/print` 
+													: `/invoices/${invoice.id}/print`}
+												target="_blank"
+											>
+												<DownloadIcon class="h-4 w-4" />
+											</Button>
 										</div>
 									</Table.Cell>
 								</Table.Row>
@@ -133,14 +139,25 @@
 									</Table.Cell>
 									<Table.Cell class="text-right">
 										<div class="flex justify-end gap-2">
-											<Button size="sm" variant="outline">
+											<Button 
+												size="sm" 
+												variant="outline"
+												onclick={() => onInvoiceSelect?.(quote)}
+												title="Preview Quotation"
+											>
 												<EyeIcon class="h-4 w-4" />
 											</Button>
-											{#if !readonly}
-												<Button size="sm" variant="outline">
-													<DownloadIcon class="h-4 w-4" />
-												</Button>
-											{/if}
+											<Button 
+												size="sm" 
+												variant="outline"
+												title="Download PDF"
+												href={readonly && customerId 
+													? `/info/${customerId}/invoice/${quote.id}/print` 
+													: `/invoices/${quote.id}/print`}
+												target="_blank"
+											>
+												<DownloadIcon class="h-4 w-4" />
+											</Button>
 										</div>
 									</Table.Cell>
 								</Table.Row>

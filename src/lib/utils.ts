@@ -25,13 +25,17 @@ export function formatCurrency(
 		maximumFractionDigits?: number;
 		showSymbol?: boolean;
 		locale?: string;
+		notation?: Intl.NumberFormatOptions['notation']; // "standard" | "compact"
+		compactDisplay?: Intl.NumberFormatOptions['compactDisplay']; // "short" | "long"
 	} = {}
 ): string {
 	const {
 		minimumFractionDigits = 0,
 		maximumFractionDigits = 2,
 		showSymbol = true,
-		locale = 'en-PK'
+		locale = 'en-PK',
+		notation = Number(amount) <= 10_00_000 ? 'standard' : 'compact',
+		compactDisplay = 'short'
 	} = options;
 
 	const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -42,7 +46,9 @@ export function formatCurrency(
 
 	const formatted = new Intl.NumberFormat(locale, {
 		minimumFractionDigits,
-		maximumFractionDigits
+		maximumFractionDigits,
+		notation,
+		...(notation === 'compact' && { compactDisplay })
 	}).format(numericAmount);
 
 	return showSymbol ? `Rs. ${formatted}` : formatted;

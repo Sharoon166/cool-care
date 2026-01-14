@@ -15,18 +15,22 @@
 
 <div class="flex flex-wrap items-center justify-between space-y-2 gap-y-6">
 	<div class="flex items-center gap-2">
-		{#if backlink}
-			<Button href={backlink} variant="ghost">
-				<ArrowLeft /> <span class="sr-only">Go to {backlink}</span>
-			</Button>
-		{/if}
 		<div>
 			<h1 class="text-3xl font-bold text-primary md:text-6xl">{title}</h1>
 			{#if description}
-				<p class="text-muted-foreground">{description}</p>
+				<p class="mt-2 text-muted-foreground">{description}</p>
 			{/if}
 		</div>
 	</div>
+	{#if backlink}
+		<Button variant="outline" href={backlink}>
+			<ArrowLeft class="h-5 w-5" />
+			Back to
+			<span class="capitalize">
+				{backlink.split('/').pop()}
+			</span>
+		</Button>
+	{/if}
 	{#if children}
 		<div class="flex flex-wrap gap-2">
 			{@render children()}

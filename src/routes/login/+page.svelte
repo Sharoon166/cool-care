@@ -64,7 +64,7 @@
 		<div class="text-center">
 			<img class="mx-auto h-12 w-auto" src="/logo.png" alt="Cool Care" />
 			<h2 class="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
-			<p class="mt-2 text-sm text-gray-600">Access your Cool Care dashboard</p>
+			<p class="mt-2 text-sm text-muted-foreground">Access your Cool Care dashboard</p>
 		</div>
 
 		<Card.Root class="mt-8">
@@ -119,9 +119,9 @@
 									disabled={loading}
 								>
 									{#if showPassword}
-										<EyeOffIcon class="h-5 w-5 text-gray-400 hover:text-gray-600" />
+										<EyeOffIcon class="h-5 w-5 text-gray-400 hover:text-muted-foreground" />
 									{:else}
-										<EyeIcon class="h-5 w-5 text-gray-400 hover:text-gray-600" />
+										<EyeIcon class="h-5 w-5 text-gray-400 hover:text-muted-foreground" />
 									{/if}
 								</button>
 							</div>
@@ -141,7 +141,7 @@
 		</Card.Root>
 
 		<div class="text-center">
-			<p class="text-sm text-gray-600">Need help? Contact your administrator for account access.</p>
+			<p class="text-sm text-muted-foreground">Need help? Contact your administrator for account access.</p>
 		</div>
 	</div>
 </div>

@@ -10,9 +10,9 @@
 	<div class="min-h-[70dvh] space-y-4 py-12 text-center">
 		<div class="mb-4 flex items-center justify-center gap-2">
 			<img src="/logo.png" alt="logo" class="size-20" />
-			<h1 class="text-4xl font-bold">Cool Care</h1>
+			<h1 class="text-3xl sm:text-6xl font-bold">Cool Care</h1>
 		</div>
-		<p class="mx-auto max-w-2xl text-xl text-muted-foreground italic">
+		<p class="mx-auto max-w-2xl sm:text-xl text-muted-foreground italic text-pretty">
 			A personal invoicing and customer management system I built specifically for my dad's
 			business. I wanted to create something that would save him time on administrative tasks.
 		</p>

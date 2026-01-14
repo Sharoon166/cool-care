@@ -128,17 +128,6 @@
 		}
 	}
 
-	// Stats
-	let stats = $derived({
-		total: data.invoices.length,
-		invoices: data.invoices.filter((i) => i.type === 'invoice').length,
-		quotations: data.invoices.filter((i) => i.type === 'quotation').length,
-		totalValue: data.invoices.reduce((sum, i) => sum + parseFloat(i.total), 0),
-		paid: data.invoices.filter((i) => i.status === 'paid').length,
-		pending: data.invoices.filter((i) => i.status === 'sent' || i.status === 'draft').length,
-		overdue: data.invoices.filter((i) => i.status === 'overdue').length
-	});
-
 	function getStatusBadgeVariant(status: string) {
 		switch (status) {
 			case 'paid':
@@ -161,7 +150,7 @@
 	<title>Invoices - Cool Care</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-7xl px-4 py-8">
+<div >
 	<!-- Header -->
 	<div class="mb-8 space-y-6">
 		<PageHeader title="Invoices" description="Manage your invoices and quotations">
@@ -180,58 +169,58 @@
 		<!-- Stats Cards -->
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 			<!-- Total Invoices -->
-			<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+			<div class="flex items-center gap-3 rounded-lg border  p-4">
 				<div class="grid size-16 place-content-center rounded-full bg-blue-100 p-6 text-blue-500">
 					<Receipt />
 				</div>
 				<div class="space-y-2">
-					<span class="text-sm text-gray-600">Total Invoices</span>
-					<div class="mt-1 text-3xl font-bold text-gray-900">{stats.total}</div>
+					<span class="text-sm text-muted-foreground">Total Invoices</span>
+					<div class="mt-1 text-3xl font-bold text-gray-900">{data.stats.total}</div>
 				</div>
 			</div>
 
 			<!-- Invoices -->
-			<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+			<div class="flex items-center gap-3 rounded-lg border  p-4">
 				<div class="grid size-16 place-content-center rounded-full bg-blue-100 p-6 text-blue-500">
 					<FileText />
 				</div>
 				<div class="space-y-2">
-					<span class="text-sm text-gray-600">Invoices</span>
-					<div class="mt-1 text-3xl font-bold text-blue-600">{stats.invoices}</div>
+					<span class="text-sm text-muted-foreground">Invoices</span>
+					<div class="mt-1 text-3xl font-bold text-blue-600">{data.stats.invoices}</div>
 				</div>
 			</div>
 
 			<!-- Quotations -->
-			<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+			<div class="flex items-center gap-3 rounded-lg border  p-4">
 				<div
 					class="grid size-16 place-content-center rounded-full bg-purple-100 p-6 text-purple-500"
 				>
 					<Users />
 				</div>
 				<div class="space-y-2">
-					<span class="text-sm text-gray-600">Quotations</span>
-					<div class="mt-1 text-3xl font-bold text-purple-600">{stats.quotations}</div>
+					<span class="text-sm text-muted-foreground">Quotations</span>
+					<div class="mt-1 text-3xl font-bold text-purple-600">{data.stats.quotations}</div>
 				</div>
 			</div>
 
 			<!-- Total Value -->
-			<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+			<div class="flex items-center gap-3 rounded-lg border  p-4">
 				<div class="grid size-16 place-content-center rounded-full bg-green-100 p-6 text-green-500">
 					<Dollar />
 				</div>
 				<div class="space-y-2">
-					<span class="text-sm text-gray-600">Total Value</span>
+					<span class="text-sm text-muted-foreground">Total Value</span>
 					<div class="mt-1 text-3xl font-bold text-green-600">
-						{formatPKR.compact(stats.totalValue)}
+						{formatPKR.compact(data.stats.totalValue)}
 					</div>
 				</div>
 			</div>
 		</div>
 
 		<!-- Filters -->
-		<div class="flex flex-col gap-4 md:flex-row">
+		<div class="flex flex-wrap justify-between gap-4">
 			<!-- Search -->
-			<InputGroup class="shadow-transparent">
+			<InputGroup class="shadow-transparent max-w-sm">
 				<InputGroupAddon><Search class="h-5 w-5" /></InputGroupAddon>
 				<InputGroupInput
 					bind:value={searchQuery}
@@ -239,35 +228,36 @@
 				/>
 			</InputGroup>
 
-			<Select type="single" bind:value={filterType}>
-				<SelectTrigger class="capitalize">
-					{filterType == 'all' ? 'All Types' : filterType}
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="all">All Types</SelectItem>
-					<SelectItem value="invoice">Invoices</SelectItem>
-					<SelectItem value="quotation">Quotations</SelectItem>
-				</SelectContent>
-			</Select>
-
-			<Select type="single" bind:value={filterStatus}>
-				<SelectTrigger class="capitalize">
-					{filterStatus == 'all' ? 'All Status' : filterStatus}
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="all">All Status</SelectItem>
-					<SelectItem value="draft">Draft</SelectItem>
-					<SelectItem value="sent">Sent</SelectItem>
-					<SelectItem value="paid">Paid</SelectItem>
-					<SelectItem value="overdue">Overdue</SelectItem>
-					<SelectItem value="cancelled">Cancelled</SelectItem>
-				</SelectContent>
-			</Select>
+			<div class="flex items-center gap-2">
+				<Select type="single" bind:value={filterType}>
+					<SelectTrigger class="capitalize w-full">
+						{filterType == 'all' ? 'All Types' : filterType}
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All Types</SelectItem>
+						<SelectItem value="invoice">Invoices</SelectItem>
+						<SelectItem value="quotation">Quotations</SelectItem>
+					</SelectContent>
+				</Select>
+				<Select type="single" bind:value={filterStatus}>
+					<SelectTrigger class="capitalize w-full">
+						{filterStatus == 'all' ? 'All Status' : filterStatus}
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All Status</SelectItem>
+						<SelectItem value="draft">Draft</SelectItem>
+						<SelectItem value="sent">Sent</SelectItem>
+						<SelectItem value="paid">Paid</SelectItem>
+						<SelectItem value="overdue">Overdue</SelectItem>
+						<SelectItem value="cancelled">Cancelled</SelectItem>
+					</SelectContent>
+				</Select>
+			</div>
 		</div>
 	</div>
 
 	<!-- Invoice Table -->
-	<div class="overflow-hidden rounded-lg border border-gray-200">
+	<div class="overflow-hidden rounded-lg border ">
 		<Table>
 			<TableHeader>
 				<TableRow>

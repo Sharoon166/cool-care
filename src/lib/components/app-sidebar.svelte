@@ -63,17 +63,6 @@
 	collapsible="icon"
 	{...restProps}
 >
-	<Sidebar.Header>
-		<Sidebar.Menu>
-			<Sidebar.MenuItem>
-				<Sidebar.MenuButton
-					class="flex w-full justify-end hover:bg-transparent data-[slot=sidebar-menu-button]:p-0.5!"
-				>
-					<Sidebar.Trigger />
-				</Sidebar.MenuButton>
-			</Sidebar.MenuItem>
-		</Sidebar.Menu>
-	</Sidebar.Header>
 	<Sidebar.Content>
 		<NavMain items={data.navMain} />
 		<NavSecondary items={data.navSecondary} class="mt-auto" />

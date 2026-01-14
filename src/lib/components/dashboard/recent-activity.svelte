@@ -5,6 +5,8 @@
 	import UserIcon from '@lucide/svelte/icons/user';
 	import DollarSignIcon from '@lucide/svelte/icons/dollar-sign';
 	import { formatPKR } from '@//utils';
+	import Link from '@tabler/icons-svelte/icons/link';
+	import ArrowUpRight from '@tabler/icons-svelte/icons/arrow-up-right';
 
 	let { data } = $props();
 
@@ -50,10 +52,10 @@
 		{:else}
 			{#each data.recentInvoices as invoice}
 				<div
-					class="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
+					class="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50 group"
 				>
 					<div class="flex items-center gap-3">
-						<div class="flex-shrink-0">
+						<div class="shrink-0">
 							<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
 								<FileTextIcon class="h-5 w-5 text-primary" />
 							</div>
@@ -81,6 +83,9 @@
 								{formatCurrency(invoice.total)}
 							</div>
 						</div>
+						<a href={`/invoices/${invoice.id}`}>
+						<ArrowUpRight class="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"/>
+						</a>
 					</div>
 				</div>
 			{/each}

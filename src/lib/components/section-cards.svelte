@@ -16,15 +16,15 @@
 	}
 </script>
 
-<div class="grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:px-6 xl:grid-cols-4">
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 	<!-- Total Revenue -->
-	<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+	<div class="flex items-center gap-3 rounded-lg border p-4">
 		<div class="grid size-16 place-content-center rounded-full bg-green-100 p-6 text-green-500">
 			<Dollar />
 		</div>
 		<div class="space-y-2">
-			<span class="text-sm text-gray-600">Total Revenue</span>
-			<div class="mt-1 text-3xl font-bold text-gray-900">
+			<span class="text-sm font-semibold">Total Revenue</span>
+			<div class="mt-1 text-3xl font-bold">
 				{#if data.databaseError}
 					--
 				{:else}
@@ -35,12 +35,12 @@
 	</div>
 
 	<!-- Total Invoices -->
-	<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+	<div class="flex items-center gap-3 rounded-lg border  p-4">
 		<div class="grid size-16 place-content-center rounded-full bg-blue-100 p-6 text-blue-500">
 			<Receipt />
 		</div>
 		<div class="space-y-2">
-			<span class="text-sm text-gray-600">Invoices</span>
+			<span class="text-sm font-semibold">Invoices</span>
 			<div class="mt-1 text-3xl font-bold text-blue-600">
 				{#if data.databaseError}
 					--
@@ -52,12 +52,12 @@
 	</div>
 
 	<!-- Quotations -->
-	<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+	<div class="flex items-center gap-3 rounded-lg border  p-4">
 		<div class="grid size-16 place-content-center rounded-full bg-purple-100 p-6 text-purple-500">
 			<FileText />
 		</div>
 		<div class="space-y-2">
-			<span class="text-sm text-gray-600">Quotations</span>
+			<span class="text-sm font-semibold">Quotations</span>
 			<div class="mt-1 text-3xl font-bold text-purple-600">
 				{#if data.databaseError}
 					--
@@ -69,13 +69,13 @@
 	</div>
 
 	<!-- Active Customers -->
-	<div class="flex items-center gap-3 rounded-lg border border-gray-200 p-4">
+	<div class="flex items-center gap-3 rounded-lg border  p-4">
 		<div class="grid size-16 place-content-center rounded-full bg-gray-100 p-6 text-gray-500">
 			<Users />
 		</div>
 		<div class="space-y-2">
-			<span class="text-sm text-gray-600">Active Customers</span>
-			<div class="mt-1 text-3xl font-bold text-gray-900">
+			<span class="text-sm font-semibold">Active Customers</span>
+			<div class="mt-1 text-3xl font-bold">
 				{#if data.databaseError}
 					--
 				{:else}

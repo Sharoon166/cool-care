@@ -2,6 +2,7 @@ import { db } from '$lib/server/db';
 import { invoices, payments } from '$lib/server/db/schema';
 import { fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
+import { createId } from '@paralleldrive/cuid2';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -91,6 +92,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		// If there was any advance payment, create a payment record for the new invoice
 		if (parseFloat(quotation.paid || '0') > 0) {
 			await db.insert(payments).values({
+				id: createId(),
 				invoiceId: newInvoice.id,
 				amount: quotation.paid,
 				paymentDate: new Date(),

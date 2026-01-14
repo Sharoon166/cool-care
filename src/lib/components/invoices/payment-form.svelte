@@ -11,7 +11,10 @@
 		InputGroupTextarea
 	} from '../ui/input-group';
 	import * as Select from '../ui/select/index.js';
+	import ExclamationCircleIcon from '@tabler/icons-svelte/icons/exclamation-circle';
 	import { formatPKR } from '$lib/utils';
+	import { DatePicker } from '../ui/date-picker';
+	import { CalendarDate, type DateValue } from '@internationalized/date';
 
 	type Props = {
 		invoiceId: string;
@@ -23,27 +26,21 @@
 	let { invoiceId, maxAmount, action = '?/addPayment', onClose = () => {} }: Props = $props();
 
 	let loading = $state(false);
-	let errors = $state<any>({});
+	let errors = $state<Record<string, string[]>>({});
+	let generalError = $state<string>('');
 
 	// Form data
 	let amount = $state('');
-	let paymentDate = $state(new Date().toISOString().split('T')[0]);
+	const today = new Date();
+	let paymentDate = $state<DateValue>(
+		new CalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate())
+	);
 	let paymentMethod = $state('cash');
 	let customMethod = $state('');
 	let notes = $state('');
 
 	// Show custom method field only when payment method is 'custom'
 	let showCustomMethod = $derived(paymentMethod === 'custom');
-
-	// Validate amount doesn't exceed maximum
-	let amountError = $derived(() => {
-		if (!amount || amount.trim() === '') return '';
-		const numAmount = parseFloat(amount);
-		if (isNaN(numAmount) || numAmount <= 0) return '';
-		if (maxAmount && numAmount > maxAmount)
-			return `Payment cannot exceed ${formatPKR.compact(maxAmount)}`;
-		return '';
-	});
 </script>
 
 <div class="max-h-[90vh] w-full max-w-md">
@@ -52,12 +49,23 @@
 		{action}
 		use:enhance={() => {
 			loading = true;
+			errors = {} as Record<string, string[]>;
+			generalError = '';
 			return async ({ result, update }) => {
 				loading = false;
 				if (result.type === 'success') {
 					onClose();
 				} else if (result.type === 'failure') {
-					errors = result.data?.errors || {};
+					// Handle validation errors (field-specific)
+					if (result.data?.errors) {
+						errors = result.data.errors;
+					}
+					// Handle general errors (invoice not found, exceeds balance, database errors)
+					if (result.data?.error) {
+						generalError = result.data.error;
+					}
+				} else if (result.type === 'error') {
+					generalError = 'An unexpected error occurred. Please try again.';
 				}
 				await update();
 			};
@@ -66,6 +74,20 @@
 	>
 		<!-- Hidden invoice ID -->
 		<input type="hidden" name="invoiceId" value={invoiceId} />
+
+		<!-- General Error Message -->
+		{#if generalError}
+			<div class="rounded-md bg-red-50 p-4">
+				<div class="flex">
+					<div class="shrink-0">
+						<ExclamationCircleIcon class="h-5 w-5 text-red-400" aria-hidden="true" />
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-red-800">{generalError}</p>
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		<!-- Amount -->
 		<div>
@@ -84,10 +106,7 @@
 					placeholder="0.00"
 				/>
 			</InputGroup>
-			<p class="mt-1 text-sm text-gray-600">Maximum: {formatPKR.compact(maxAmount)}</p>
-			<!-- {#if amountError}
-				<p class="mt-1 text-sm text-red-600">{amountError}</p>
-			{/if} -->
+			<p class="mt-1 text-sm text-muted-foreground">Maximum: {formatPKR.compact(maxAmount)}</p>
 			{#if errors.amount}
 				<p class="mt-1 text-sm text-red-600">{errors.amount[0]}</p>
 			{/if}
@@ -98,7 +117,12 @@
 			<label for="paymentDate" class="mb-1 block text-sm font-medium text-gray-700">
 				Payment Date <span class="text-red-500">*</span>
 			</label>
-			<Input type="date" id="paymentDate" name="paymentDate" bind:value={paymentDate} />
+			<DatePicker bind:value={paymentDate} class="w-full" />
+			<input
+				type="hidden"
+				name="paymentDate"
+				value={paymentDate ? paymentDate.toString() : ''}
+			/>
 			{#if errors.paymentDate}
 				<p class="mt-1 text-sm text-red-600">{errors.paymentDate[0]}</p>
 			{/if}
