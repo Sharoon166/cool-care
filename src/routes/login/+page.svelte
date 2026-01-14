@@ -18,25 +18,47 @@
 	let password = $state('');
 	let loading = $state(false);
 	let showPassword = $state(false);
+	let errorMessage = $state('');
 
 	async function handleLogin(event: SubmitEvent) {
 		event.preventDefault();
+		errorMessage = '';
 
 		if (!username || !password) {
-			toast.error('Please fill in all fields');
+			errorMessage = 'Please fill in all fields';
+			toast.error(errorMessage);
 			return;
 		}
 
 		loading = true;
 		try {
-			// Use username as email for better-auth compatibility
-			const result = await authClient.signIn.email({
-				email: username,
+			// Try username first, then fall back to email
+			const result = await authClient.signIn.username({
+				username,
 				password
 			});
 
+			// If username sign-in fails and input looks like email, try email sign-in
+			if (result.error && username.includes('@')) {
+				const emailResult = await authClient.signIn.email({
+					email: username,
+					password
+				});
+
+				if (emailResult.error) {
+					errorMessage = emailResult.error.message || 'Invalid username or password';
+					toast.error(errorMessage);
+				} else {
+					toast.success('Login successful');
+					const redirectTo = $page.url.searchParams.get('redirectTo') || '/dashboard';
+					goto(redirectTo);
+				}
+				return;
+			}
+
 			if (result.error) {
-				toast.error(result.error.message || 'Invalid username or password');
+				errorMessage = result.error.message || 'Invalid username or password';
+				toast.error(errorMessage);
 			} else {
 				toast.success('Login successful');
 				const redirectTo = $page.url.searchParams.get('redirectTo') || '/dashboard';
@@ -44,7 +66,8 @@
 			}
 		} catch (error) {
 			console.error('Login error:', error);
-			toast.error('An unexpected error occurred');
+			errorMessage = 'An unexpected error occurred. Please try again.';
+			toast.error(errorMessage);
 		} finally {
 			loading = false;
 		}
@@ -74,6 +97,31 @@
 			</Card.Header>
 			<Card.Content>
 				<form onsubmit={handleLogin} class="space-y-6">
+					<!-- Error Message -->
+					{#if errorMessage}
+						<div class="rounded-md bg-red-50 p-4">
+							<div class="flex">
+								<div class="shrink-0">
+									<svg
+										class="h-5 w-5 text-red-400"
+										viewBox="0 0 20 20"
+										fill="currentColor"
+										aria-hidden="true"
+									>
+										<path
+											fill-rule="evenodd"
+											d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+								</div>
+								<div class="ml-3">
+									<p class="text-sm font-medium text-red-800">{errorMessage}</p>
+								</div>
+							</div>
+						</div>
+					{/if}
+
 					<div class="space-y-4">
 						<div>
 							<Label for="username">Username or Email</Label>

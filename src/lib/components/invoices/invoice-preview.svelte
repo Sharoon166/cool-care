@@ -33,7 +33,7 @@
 	}
 
 	function downloadPDF() {
-		goto(`/invoices/${invoice.id}/print`);
+		goto(`/info/${customer.id}/invoice/${invoice.id}/print`);
 	}
 
 	function emailInvoice() {
@@ -47,6 +47,10 @@
 	let subtotal = $derived(Number(invoice?.subtotal || 0));
 	let discountAmount = $derived(Number(invoice?.discountAmount || 0));
 	let total = $derived(Number(invoice?.total || 0));
+	let previous = $derived(Number(invoice?.previous || 0));
+	let paid = $derived(Number(invoice?.paid || 0));
+	let totalPaid = $derived(Number(invoice?.totalPaid || 0));
+	let balance = $derived(Number(invoice?.balance || 0));
 	let tax = $derived(subtotal - discountAmount - total); // Calculate tax as difference
 </script>
 
@@ -74,22 +78,6 @@
 		</Card.Header>
 
 		<Card.Content class="p-8">
-			<!-- Bill To -->
-			<div class="mb-8">
-				<h3 class="mb-3 text-lg font-semibold text-gray-900">Bill To:</h3>
-				<div class="text-gray-700">
-					<p class="text-lg font-medium">{customer.name}</p>
-					{#if customer.companyName}
-						<p>{customer.companyName}</p>
-					{/if}
-					<p>{customer.address}</p>
-					<p>{customer.phone}</p>
-					{#if customer.email}
-						<p>{customer.email}</p>
-					{/if}
-				</div>
-			</div>
-
 			<!-- Invoice Items -->
 			<div class="mb-8">
 				<div class="overflow-hidden rounded-lg border">
@@ -173,9 +161,45 @@
 								<span>{formatPKR.compact(total)}</span>
 							</div>
 						</div>
+						{#if previous > 0}
+							<div class="flex justify-between text-sm">
+								<span class="text-muted-foreground">Previous Balance:</span>
+								<span class="font-medium">{formatPKR.compact(previous)}</span>
+							</div>
+						{/if}
+						{#if paid > 0}
+							<div class="flex justify-between text-sm">
+								<span class="text-muted-foreground">Advance Payment:</span>
+								<span class="font-medium text-green-600">-{formatPKR.compact(paid)}</span>
+							</div>
+						{/if}
+						{#if totalPaid > 0}
+							<div class="flex justify-between text-sm">
+								<span class="text-muted-foreground">Total Paid:</span>
+								<span class="font-medium text-green-600">-{formatPKR.compact(totalPaid)}</span>
+							</div>
+						{/if}
+						{#if balance !== total}
+							<div class="border-t pt-2">
+								<div class="flex justify-between text-lg font-bold">
+									<span>Balance Due:</span>
+									<span class={balance > 0 ? 'text-red-600' : 'text-green-600'}
+										>{formatPKR.compact(balance)}</span
+									>
+								</div>
+							</div>
+						{/if}
 					</div>
 				</div>
 			</div>
+
+			<!-- Invoice Notes -->
+			{#if invoice.notes}
+				<div class="mt-8 rounded-lg border bg-gray-50 p-4">
+					<h3 class="mb-2 text-sm font-semibold text-gray-900">Notes:</h3>
+					<p class="whitespace-pre-wrap text-sm text-gray-700">{invoice.notes}</p>
+				</div>
+			{/if}
 		</Card.Content>
 	</Card.Root>
 {:else}

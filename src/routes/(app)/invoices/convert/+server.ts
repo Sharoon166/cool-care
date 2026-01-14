@@ -3,6 +3,7 @@ import { invoices, payments } from '$lib/server/db/schema';
 import { fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
+import { calculateInvoiceStatus } from '$lib/server/payment-actions';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -46,6 +47,11 @@ export const POST: RequestHandler = async ({ request }) => {
 			.padStart(3, '0');
 		const invoiceNumber = `INV-${year}${month}-${random}`;
 
+		// Calculate status based on advance payment
+		const totalAmount = parseFloat(quotation.total || '0');
+		const paidAmount = parseFloat(quotation.paid || '0');
+		const initialStatus = calculateInvoiceStatus(totalAmount, paidAmount, 'sent');
+
 		// Create new invoice from quotation data
 		const insertResult = await db
 			.insert(invoices)
@@ -68,7 +74,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					parseFloat(quotation.previous || '0') -
 					parseFloat(quotation.paid || '0')
 				).toString(), // Balance = total + previous - paid
-				status: 'sent', // Converted quotations become sent invoices
+				status: initialStatus, // Set based on advance payment
 				notes: quotation.notes
 			})
 			.returning();

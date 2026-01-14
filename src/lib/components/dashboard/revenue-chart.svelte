@@ -8,13 +8,14 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { DatePicker } from '$lib/components/ui/date-picker';
 	import { CalendarDate, type DateValue } from '@internationalized/date';
-	import { Area, AreaChart } from 'layerchart';
+	import { Area, AreaChart, Chart } from 'layerchart';
 	import { scaleTime } from 'd3-scale';
 	import { curveNatural } from 'd3-shape';
 	import { formatPKR } from '$lib/utils';
 	import CalendarIcon from '@tabler/icons-svelte/icons/calendar';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import ChartTooltip from '../ui/chart/chart-tooltip.svelte';
 
 	let { data } = $props();
 
@@ -84,7 +85,11 @@
 				const fromDate = new Date(customFrom);
 				const toDate = new Date(customTo);
 				customDateRange = {
-					from: new CalendarDate(fromDate.getFullYear(), fromDate.getMonth() + 1, fromDate.getDate()),
+					from: new CalendarDate(
+						fromDate.getFullYear(),
+						fromDate.getMonth() + 1,
+						fromDate.getDate()
+					),
 					to: new CalendarDate(toDate.getFullYear(), toDate.getMonth() + 1, toDate.getDate())
 				};
 			} catch (e) {
@@ -173,7 +178,7 @@
 
 	function updateCustomRangeInUrl() {
 		if (!customDateRange.from || !customDateRange.to) return;
-		
+
 		const url = new URL($page.url);
 		url.searchParams.set('timeRange', 'custom');
 		url.searchParams.set('customFrom', customDateRange.from.toDate('UTC').toISOString());

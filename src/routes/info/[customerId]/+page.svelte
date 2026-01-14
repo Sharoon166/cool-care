@@ -3,7 +3,6 @@
 	import CustomerHistory from '$lib/components/customers/customer-history.svelte';
 	import InvoicePreview from '$lib/components/invoices/invoice-preview.svelte';
 
-	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import * as Sheet from '$lib/components/ui/sheet';
@@ -14,7 +13,7 @@
 
 	let { data } = $props();
 
-	let selectedInvoice: any = null;
+	let selectedInvoice: any = $state(null);
 	let sheetOpen = $state(false);
 
 	function handleInvoiceSelect(invoice: any) {
@@ -37,13 +36,11 @@
 <div class="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
 	<div class="container mx-auto px-4 py-6">
 		<div class="flex items-center gap-3">
-			<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-				<UserIcon class="h-5 w-5 text-primary" />
-			</div>
+			<img src="/logo.png" alt="Company Logo" class="h-14 w-auto" />
 
 			<div>
-				<h1 class="text-2xl font-semibold tracking-tight">
-					{data.customer?.name}
+				<h1 class="text-2xl font-semibold">
+					{COMPANY_INFO.name}
 				</h1>
 				<p class="text-sm text-muted-foreground">Customer Information Portal</p>
 			</div>
@@ -85,8 +82,14 @@
 <!-- Invoice Preview Sheet -->
 <Sheet.Root bind:open={sheetOpen} onOpenChange={(open) => !open && closeSheet()}>
 	<Sheet.Content side="right" class="w-screen sm:max-w-4xl">
+		<Sheet.Header>
+			<Sheet.Title>Invoice Details</Sheet.Title>
+			<Sheet.Description>
+				Complete invoice information including items, payments, and notes
+			</Sheet.Description>
+		</Sheet.Header>
 		{#if selectedInvoice}
-			<div class="flex-1 overflow-auto px-4 pt-12">
+			<div class="flex-1 overflow-auto px-4 pt-6">
 				<InvoicePreview invoice={selectedInvoice} customer={data.customer} readonly />
 			</div>
 		{:else}

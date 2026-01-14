@@ -4,6 +4,28 @@ import { paymentSchema } from '$lib/validations/invoice';
 import { fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
+// Helper function to calculate invoice status based on payment amounts
+export function calculateInvoiceStatus(
+	totalAmount: number,
+	paidAmount: number,
+	currentStatus: string
+): string {
+	// Don't change draft or converted status
+	if (currentStatus === 'draft' || currentStatus === 'converted') {
+		return currentStatus;
+	}
+
+	if (paidAmount === 0) {
+		return 'sent'; // No payments yet
+	} else if (paidAmount >= totalAmount) {
+		return 'paid'; // Fully paid
+	} else if (paidAmount > 0 && paidAmount < totalAmount) {
+		return 'partial'; // Partially paid
+	}
+
+	return currentStatus;
+}
+
 // Helper function to update invoice status based on payments
 async function updateInvoicePaymentStatus(invoiceId: string) {
 	// Get invoice total and current total paid
@@ -23,15 +45,7 @@ async function updateInvoicePaymentStatus(invoiceId: string) {
 	const paidAmount = parseFloat(invoice.totalPaid || '0');
 
 	// Calculate new status
-	let newStatus = invoice.status;
-
-	if (paidAmount === 0) {
-		newStatus = 'sent'; // No payments yet
-	} else if (paidAmount >= totalAmount) {
-		newStatus = 'paid'; // Fully paid
-	} else if (paidAmount > 0 && paidAmount < totalAmount) {
-		newStatus = 'partial'; // Partially paid
-	}
+	const newStatus = calculateInvoiceStatus(totalAmount, paidAmount, invoice.status);
 
 	// Update invoice status if changed
 	if (newStatus !== invoice.status) {

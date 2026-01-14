@@ -53,6 +53,10 @@ export async function load({ params }) {
 					discountValue: invoices.discountValue,
 					discountAmount: invoices.discountAmount,
 					notes: invoices.notes,
+					previous: invoices.previous,
+					paid: invoices.paid,
+					totalPaid: invoices.totalPaid,
+					balance: invoices.balance,
 					createdAt: invoices.createdAt
 				})
 				.from(invoices)

@@ -3,7 +3,7 @@ import { invoices, customers, payments } from '$lib/server/db/schema';
 import { invoiceSchema } from '$lib/validations/invoice';
 import { fail } from '@sveltejs/kit';
 import { eq, isNull, desc, and } from 'drizzle-orm';
-import { addPayment, deletePayment } from '$lib/server/payment-actions';
+import { addPayment, deletePayment, calculateInvoiceStatus } from '$lib/server/payment-actions';
 import { createId } from '@paralleldrive/cuid2';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -100,6 +100,16 @@ export const actions: Actions = {
 			// Initial balance = total + previous - advance payment
 			const balance = total + result.data.previous - advancePayment;
 
+			// Determine initial status based on advance payment
+			let initialStatus = 'draft';
+			if (advancePayment > 0) {
+				if (advancePayment >= total) {
+					initialStatus = 'paid'; // Fully paid with advance
+				} else {
+					initialStatus = 'partial'; // Partially paid with advance
+				}
+			}
+
 			// Insert invoice
 			const [newInvoice] = await db
 				.insert(invoices)
@@ -118,7 +128,7 @@ export const actions: Actions = {
 					paid: advancePayment.toString(),
 					totalPaid: advancePayment.toString(), // Set to advance payment amount
 					balance: balance.toString(),
-					status: 'draft', // Always start as draft
+					status: initialStatus, // Set based on advance payment
 					notes: result.data.notes
 				})
 				.returning();
@@ -220,6 +230,13 @@ export const actions: Actions = {
 			// Balance = total + previous - new total paid
 			const balance = total + result.data.previous - newTotalPaid;
 
+			// Recalculate status based on new payment amounts
+			const newStatus = calculateInvoiceStatus(
+				total,
+				newTotalPaid,
+				result.data.status || currentInvoice.status
+			);
+
 			const [updatedInvoice] = await db
 				.update(invoices)
 				.set({
@@ -237,7 +254,7 @@ export const actions: Actions = {
 					paid: newAdvancePayment.toString(),
 					totalPaid: newTotalPaid.toString(),
 					balance: balance.toString(),
-					status: result.data.status || currentInvoice.status,
+					status: newStatus,
 					notes: result.data.notes,
 					updatedAt: new Date()
 				})
