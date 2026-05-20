@@ -1,7 +1,7 @@
 <script>
-	let { children } = $props();
+  let { children } = $props();
 </script>
 
 <main class="min-h-screen bg-background">
-	{@render children()}
+  {@render children()}
 </main>

@@ -8,343 +8,347 @@ import { createId } from '@paralleldrive/cuid2';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-	// Get all active invoices (not soft-deleted) with customer info and payment summary
-	const allInvoices = await db
-		.select({
-			id: invoices.id,
-			type: invoices.type,
-			invoiceNumber: invoices.invoiceNumber,
-			invoiceDate: invoices.invoiceDate,
-			customerId: invoices.customerId,
-			customerName: customers.name,
-			customerCompany: customers.companyName,
-			total: invoices.total,
-			balance: invoices.balance,
-			totalPaid: invoices.totalPaid,
-			status: invoices.status,
-			createdAt: invoices.createdAt
-		})
-		.from(invoices)
-		.leftJoin(customers, eq(invoices.customerId, customers.id))
-		.where(isNull(invoices.deletedAt))
-		.orderBy(desc(invoices.createdAt));
+  // Get all active invoices (not soft-deleted) with customer info and payment summary
+  const allInvoices = await db
+    .select({
+      id: invoices.id,
+      type: invoices.type,
+      invoiceNumber: invoices.invoiceNumber,
+      invoiceDate: invoices.invoiceDate,
+      customerId: invoices.customerId,
+      customerName: customers.name,
+      customerCompany: customers.companyName,
+      total: invoices.total,
+      balance: invoices.balance,
+      totalPaid: invoices.totalPaid,
+      status: invoices.status,
+      createdAt: invoices.createdAt
+    })
+    .from(invoices)
+    .leftJoin(customers, eq(invoices.customerId, customers.id))
+    .where(isNull(invoices.deletedAt))
+    .orderBy(desc(invoices.createdAt));
 
-	// Calculate stats on the backend
-	const stats = {
-		total: allInvoices.length,
-		invoices: allInvoices.filter((i) => i.type === 'invoice').length,
-		quotations: allInvoices.filter((i) => i.type === 'quotation').length,
-		totalValue: allInvoices.filter((i) => i.type === 'invoice').reduce((sum, i) => sum + parseFloat(i.total), 0),
-		paid: allInvoices.filter((i) => i.status === 'paid').length,
-		pending: allInvoices.filter((i) => i.status === 'sent' || i.status === 'draft').length,
-		overdue: allInvoices.filter((i) => i.status === 'overdue').length
-	};
+  // Calculate stats on the backend
+  const stats = {
+    total: allInvoices.length,
+    invoices: allInvoices.filter((i) => i.type === 'invoice').length,
+    quotations: allInvoices.filter((i) => i.type === 'quotation').length,
+    totalValue: allInvoices
+      .filter((i) => i.type === 'invoice')
+      .reduce((sum, i) => sum + parseFloat(i.total), 0),
+    paid: allInvoices.filter((i) => i.status === 'paid').length,
+    pending: allInvoices.filter((i) => i.status === 'sent' || i.status === 'draft').length,
+    overdue: allInvoices.filter((i) => i.status === 'overdue').length
+  };
 
-	return {
-		invoices: allInvoices,
-		stats
-	};
+  return {
+    invoices: allInvoices,
+    stats
+  };
 };
 
 export const actions: Actions = {
-	create: async ({ request }) => {
-		const formData = await request.formData();
-		const rawData = Object.fromEntries(formData);
+  create: async ({ request }) => {
+    const formData = await request.formData();
+    const rawData = Object.fromEntries(formData);
 
-		// Parse items from JSON string
-		let items;
-		try {
-			items = JSON.parse(rawData.items as string);
-		} catch {
-			return fail(400, {
-				error: 'Invalid items data',
-				data: rawData
-			});
-		}
+    // Parse items from JSON string
+    let items;
+    try {
+      items = JSON.parse(rawData.items as string);
+    } catch {
+      return fail(400, {
+        error: 'Invalid items data',
+        data: rawData
+      });
+    }
 
-		// Create a new object with proper types
-		const data = {
-			...rawData,
-			items,
-			discountValue: parseFloat(rawData.discountValue as string) || 0,
-			previous: parseFloat(rawData.previous as string) || 0,
-			paid: parseFloat(rawData.paid as string) || 0
-		};
+    // Create a new object with proper types
+    const data = {
+      ...rawData,
+      items,
+      discountValue: parseFloat(rawData.discountValue as string) || 0,
+      previous: parseFloat(rawData.previous as string) || 0,
+      paid: parseFloat(rawData.paid as string) || 0
+    };
 
-		// Validate
-		const result = invoiceSchema.safeParse(data);
+    // Validate
+    const result = invoiceSchema.safeParse(data);
 
-		if (!result.success) {
-			return fail(400, {
-				error: 'Validation failed',
-				errors: result.error.flatten().fieldErrors,
-				data
-			});
-		}
+    if (!result.success) {
+      return fail(400, {
+        error: 'Validation failed',
+        errors: result.error.flatten().fieldErrors,
+        data
+      });
+    }
 
-		try {
-			// Calculate totals
-			const subtotal = items.reduce(
-				(sum: number, item: { amount: number }) => sum + item.amount,
-				0
-			);
-			const discountAmount =
-				result.data.discountType === 'percentage'
-					? (subtotal * result.data.discountValue) / 100
-					: result.data.discountValue;
-			const total = subtotal - discountAmount;
-			
-			// Advance payment amount
-			const advancePayment = result.data.paid;
-			
-			// Initial balance = total + previous - advance payment
-			const balance = total + result.data.previous - advancePayment;
+    try {
+      // Calculate totals
+      const subtotal = items.reduce(
+        (sum: number, item: { amount: number }) => sum + item.amount,
+        0
+      );
+      const discountAmount =
+        result.data.discountType === 'percentage'
+          ? (subtotal * result.data.discountValue) / 100
+          : result.data.discountValue;
+      const total = subtotal - discountAmount;
 
-			// Determine initial status based on advance payment
-			let initialStatus = 'draft';
-			if (advancePayment > 0) {
-				if (advancePayment >= total) {
-					initialStatus = 'paid'; // Fully paid with advance
-				} else {
-					initialStatus = 'partial'; // Partially paid with advance
-				}
-			}
+      // Advance payment amount
+      const advancePayment = result.data.paid;
 
-			// Insert invoice
-			const [newInvoice] = await db
-				.insert(invoices)
-				.values({
-					type: result.data.type,
-					invoiceNumber: result.data.invoiceNumber,
-					invoiceDate: new Date(result.data.invoiceDate),
-					customerId: result.data.customerId,
-					items: result.data.items,
-					subtotal: subtotal.toString(),
-					discountType: result.data.discountType,
-					discountValue: result.data.discountValue?.toString() || '0',
-					discountAmount: discountAmount.toString(),
-					total: total.toString(),
-					previous: result.data.previous.toString(),
-					paid: advancePayment.toString(),
-					totalPaid: advancePayment.toString(), // Set to advance payment amount
-					balance: balance.toString(),
-					status: initialStatus, // Set based on advance payment
-					notes: result.data.notes
-				})
-				.returning();
+      // Initial balance = total + previous - advance payment
+      const balance = total + result.data.previous - advancePayment;
 
-			// If there's an advance payment, create a payment record
-			if (advancePayment > 0) {
-				await db.insert(payments).values({
-					id: createId(),
-					invoiceId: newInvoice.id,
-					amount: advancePayment.toString(),
-					paymentDate: new Date(result.data.invoiceDate), // Use invoice date for advance payment
-					paymentMethod: 'cash', // Default to cash for advance payments
-					notes: 'Advance payment received at invoice creation'
-				});
-			}
+      // Determine initial status based on advance payment
+      let initialStatus = 'draft';
+      if (advancePayment > 0) {
+        if (advancePayment >= total) {
+          initialStatus = 'paid'; // Fully paid with advance
+        } else {
+          initialStatus = 'partial'; // Partially paid with advance
+        }
+      }
 
-			return {
-				success: true,
-				invoice: newInvoice
-			};
-		} catch (error) {
-			console.error('Database error:', error);
-			return fail(500, {
-				error: 'Failed to create invoice',
-				data
-			});
-		}
-	},
+      // Insert invoice
+      const [newInvoice] = await db
+        .insert(invoices)
+        .values({
+          type: result.data.type,
+          invoiceNumber: result.data.invoiceNumber,
+          invoiceDate: new Date(result.data.invoiceDate),
+          customerId: result.data.customerId,
+          items: result.data.items,
+          subtotal: subtotal.toString(),
+          discountType: result.data.discountType,
+          discountValue: result.data.discountValue?.toString() || '0',
+          discountAmount: discountAmount.toString(),
+          total: total.toString(),
+          previous: result.data.previous.toString(),
+          paid: advancePayment.toString(),
+          totalPaid: advancePayment.toString(), // Set to advance payment amount
+          balance: balance.toString(),
+          status: initialStatus, // Set based on advance payment
+          notes: result.data.notes
+        })
+        .returning();
 
-	update: async ({ request }) => {
-		const formData = await request.formData();
-		const id = formData.get('id') as string;
-		const rawData = Object.fromEntries(formData);
-		delete rawData.id;
+      // If there's an advance payment, create a payment record
+      if (advancePayment > 0) {
+        await db.insert(payments).values({
+          id: createId(),
+          invoiceId: newInvoice.id,
+          amount: advancePayment.toString(),
+          paymentDate: new Date(result.data.invoiceDate), // Use invoice date for advance payment
+          paymentMethod: 'cash', // Default to cash for advance payments
+          notes: 'Advance payment received at invoice creation'
+        });
+      }
 
-		// Parse items from JSON string
-		let items;
-		try {
-			items = JSON.parse(rawData.items as string);
-		} catch {
-			return fail(400, {
-				error: 'Invalid items data',
-				data: rawData
-			});
-		}
+      return {
+        success: true,
+        invoice: newInvoice
+      };
+    } catch (error) {
+      console.error('Database error:', error);
+      return fail(500, {
+        error: 'Failed to create invoice',
+        data
+      });
+    }
+  },
 
-		// Create a new object with proper types
-		const data = {
-			...rawData,
-			items,
-			discountValue: parseFloat(rawData.discountValue as string) || 0,
-			previous: parseFloat(rawData.previous as string) || 0,
-			paid: parseFloat(rawData.paid as string) || 0
-		};
+  update: async ({ request }) => {
+    const formData = await request.formData();
+    const id = formData.get('id') as string;
+    const rawData = Object.fromEntries(formData);
+    delete rawData.id;
 
-		const result = invoiceSchema.safeParse(data);
+    // Parse items from JSON string
+    let items;
+    try {
+      items = JSON.parse(rawData.items as string);
+    } catch {
+      return fail(400, {
+        error: 'Invalid items data',
+        data: rawData
+      });
+    }
 
-		if (!result.success) {
-			return fail(400, {
-				error: 'Validation failed',
-				errors: result.error.flatten().fieldErrors,
-				data
-			});
-		}
+    // Create a new object with proper types
+    const data = {
+      ...rawData,
+      items,
+      discountValue: parseFloat(rawData.discountValue as string) || 0,
+      previous: parseFloat(rawData.previous as string) || 0,
+      paid: parseFloat(rawData.paid as string) || 0
+    };
 
-		try {
-			// Get current invoice to preserve status and check existing advance payment
-			const [currentInvoice] = await db
-				.select({
-					status: invoices.status,
-					totalPaid: invoices.totalPaid,
-					paid: invoices.paid // Current advance payment amount
-				})
-				.from(invoices)
-				.where(eq(invoices.id, id));
+    const result = invoiceSchema.safeParse(data);
 
-			if (!currentInvoice) {
-				return fail(404, { error: 'Invoice not found' });
-			}
+    if (!result.success) {
+      return fail(400, {
+        error: 'Validation failed',
+        errors: result.error.flatten().fieldErrors,
+        data
+      });
+    }
 
-			// Calculate totals
-			const subtotal = items.reduce(
-				(sum: number, item: { amount: number }) => sum + item.amount,
-				0
-			);
-			const discountAmount =
-				result.data.discountType === 'percentage'
-					? (subtotal * result.data.discountValue) / 100
-					: result.data.discountValue;
-			const total = subtotal - discountAmount;
+    try {
+      // Get current invoice to preserve status and check existing advance payment
+      const [currentInvoice] = await db
+        .select({
+          status: invoices.status,
+          totalPaid: invoices.totalPaid,
+          paid: invoices.paid // Current advance payment amount
+        })
+        .from(invoices)
+        .where(eq(invoices.id, id));
 
-			const currentTotalPaid = parseFloat(currentInvoice.totalPaid || '0');
-			const currentAdvancePayment = parseFloat(currentInvoice.paid || '0');
-			const newAdvancePayment = result.data.paid;
+      if (!currentInvoice) {
+        return fail(404, { error: 'Invoice not found' });
+      }
 
-			// Calculate new total paid: current total paid - old advance + new advance
-			const newTotalPaid = currentTotalPaid - currentAdvancePayment + newAdvancePayment;
+      // Calculate totals
+      const subtotal = items.reduce(
+        (sum: number, item: { amount: number }) => sum + item.amount,
+        0
+      );
+      const discountAmount =
+        result.data.discountType === 'percentage'
+          ? (subtotal * result.data.discountValue) / 100
+          : result.data.discountValue;
+      const total = subtotal - discountAmount;
 
-			// Balance = total + previous - new total paid
-			const balance = total + result.data.previous - newTotalPaid;
+      const currentTotalPaid = parseFloat(currentInvoice.totalPaid || '0');
+      const currentAdvancePayment = parseFloat(currentInvoice.paid || '0');
+      const newAdvancePayment = result.data.paid;
 
-			// Recalculate status based on new payment amounts
-			const newStatus = calculateInvoiceStatus(
-				total,
-				newTotalPaid,
-				result.data.status || currentInvoice.status
-			);
+      // Calculate new total paid: current total paid - old advance + new advance
+      const newTotalPaid = currentTotalPaid - currentAdvancePayment + newAdvancePayment;
 
-			const [updatedInvoice] = await db
-				.update(invoices)
-				.set({
-					type: result.data.type,
-					invoiceNumber: result.data.invoiceNumber,
-					invoiceDate: new Date(result.data.invoiceDate),
-					customerId: result.data.customerId,
-					items: result.data.items,
-					subtotal: subtotal.toString(),
-					discountType: result.data.discountType,
-					discountValue: result.data.discountValue?.toString() || '0',
-					discountAmount: discountAmount.toString(),
-					total: total.toString(),
-					previous: result.data.previous.toString(),
-					paid: newAdvancePayment.toString(),
-					totalPaid: newTotalPaid.toString(),
-					balance: balance.toString(),
-					status: newStatus,
-					notes: result.data.notes,
-					updatedAt: new Date()
-				})
-				.where(eq(invoices.id, id))
-				.returning();
+      // Balance = total + previous - new total paid
+      const balance = total + result.data.previous - newTotalPaid;
 
-			// Handle advance payment changes
-			if (newAdvancePayment !== currentAdvancePayment) {
-				// First, delete any existing advance payment record
-				if (currentAdvancePayment > 0) {
-					await db.delete(payments).where(
-						and(
-							eq(payments.invoiceId, id),
-							eq(payments.notes, 'Advance payment received at invoice creation')
-						)
-					);
-				}
+      // Recalculate status based on new payment amounts
+      const newStatus = calculateInvoiceStatus(
+        total,
+        newTotalPaid,
+        result.data.status || currentInvoice.status
+      );
 
-				// Create new advance payment record if there's an advance payment
-				if (newAdvancePayment > 0) {
-					await db.insert(payments).values({
-						id: createId(),
-						invoiceId: id,
-						amount: newAdvancePayment.toString(),
-						paymentDate: new Date(result.data.invoiceDate),
-						paymentMethod: 'cash',
-						notes: 'Advance payment received at invoice creation'
-					});
-				}
-			}
+      const [updatedInvoice] = await db
+        .update(invoices)
+        .set({
+          type: result.data.type,
+          invoiceNumber: result.data.invoiceNumber,
+          invoiceDate: new Date(result.data.invoiceDate),
+          customerId: result.data.customerId,
+          items: result.data.items,
+          subtotal: subtotal.toString(),
+          discountType: result.data.discountType,
+          discountValue: result.data.discountValue?.toString() || '0',
+          discountAmount: discountAmount.toString(),
+          total: total.toString(),
+          previous: result.data.previous.toString(),
+          paid: newAdvancePayment.toString(),
+          totalPaid: newTotalPaid.toString(),
+          balance: balance.toString(),
+          status: newStatus,
+          notes: result.data.notes,
+          updatedAt: new Date()
+        })
+        .where(eq(invoices.id, id))
+        .returning();
 
-			return {
-				success: true,
-				invoice: updatedInvoice
-			};
-		} catch (error) {
-			console.error('Database error:', error);
-			return fail(500, {
-				error: 'Failed to update invoice',
-				data
-			});
-		}
-	},
+      // Handle advance payment changes
+      if (newAdvancePayment !== currentAdvancePayment) {
+        // First, delete any existing advance payment record
+        if (currentAdvancePayment > 0) {
+          await db
+            .delete(payments)
+            .where(
+              and(
+                eq(payments.invoiceId, id),
+                eq(payments.notes, 'Advance payment received at invoice creation')
+              )
+            );
+        }
 
-	delete: async ({ request }) => {
-		const formData = await request.formData();
-		const id = formData.get('id') as string;
+        // Create new advance payment record if there's an advance payment
+        if (newAdvancePayment > 0) {
+          await db.insert(payments).values({
+            id: createId(),
+            invoiceId: id,
+            amount: newAdvancePayment.toString(),
+            paymentDate: new Date(result.data.invoiceDate),
+            paymentMethod: 'cash',
+            notes: 'Advance payment received at invoice creation'
+          });
+        }
+      }
 
-		try {
-			// Soft delete
-			await db.update(invoices).set({ deletedAt: new Date() }).where(eq(invoices.id, id));
+      return {
+        success: true,
+        invoice: updatedInvoice
+      };
+    } catch (error) {
+      console.error('Database error:', error);
+      return fail(500, {
+        error: 'Failed to update invoice',
+        data
+      });
+    }
+  },
 
-			return { success: true };
-		} catch (error) {
-			console.error('Database error:', error);
-			return fail(500, {
-				error: 'Failed to delete invoice'
-			});
-		}
-	},
+  delete: async ({ request }) => {
+    const formData = await request.formData();
+    const id = formData.get('id') as string;
 
-	updateStatus: async ({ request }) => {
-		const formData = await request.formData();
-		const id = formData.get('id') as string;
-		const status = formData.get('status') as string;
+    try {
+      // Soft delete
+      await db.update(invoices).set({ deletedAt: new Date() }).where(eq(invoices.id, id));
 
-		try {
-			await db
-				.update(invoices)
-				.set({
-					status,
-					updatedAt: new Date()
-				})
-				.where(eq(invoices.id, id));
+      return { success: true };
+    } catch (error) {
+      console.error('Database error:', error);
+      return fail(500, {
+        error: 'Failed to delete invoice'
+      });
+    }
+  },
 
-			return { success: true };
-		} catch {
-			return fail(500, {
-				error: 'Failed to update status'
-			});
-		}
-	},
+  updateStatus: async ({ request }) => {
+    const formData = await request.formData();
+    const id = formData.get('id') as string;
+    const status = formData.get('status') as string;
 
-	addPayment: async ({ request }) => {
-		const formData = await request.formData();
-		return await addPayment(formData);
-	},
+    try {
+      await db
+        .update(invoices)
+        .set({
+          status,
+          updatedAt: new Date()
+        })
+        .where(eq(invoices.id, id));
 
-	deletePayment: async ({ request }) => {
-		const formData = await request.formData();
-		return await deletePayment(formData);
-	}
+      return { success: true };
+    } catch {
+      return fail(500, {
+        error: 'Failed to update status'
+      });
+    }
+  },
+
+  addPayment: async ({ request }) => {
+    const formData = await request.formData();
+    return await addPayment(formData);
+  },
+
+  deletePayment: async ({ request }) => {
+    const formData = await request.formData();
+    return await deletePayment(formData);
+  }
 };

@@ -1,24 +1,16 @@
 <script lang="ts">
-	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import AppSidebar from '$lib/components/app-sidebar.svelte';
-	import SiteHeader from '$lib/components/site-header.svelte';
+  import SiteHeader from '$lib/components/site-header.svelte';
 
-	let { children } = $props();
+  let { children } = $props();
 </script>
 
-<Sidebar.Provider
-	style="--sidebar-width: calc(var(--spacing) * 72); --header-height: calc(var(--spacing) * 14);"
-	class="flex flex-col"
+<div
+  class="mx-auto min-h-screen w-full max-w-[1600px] flex-1 flex-col space-y-6 bg-background px-6 py-8"
 >
-	<SiteHeader />
-	<div class="flex flex-1">
-		<AppSidebar variant="inset" />
-		<Sidebar.Inset>
-			<div class="flex flex-1 flex-col">
-				<div class="@container/main flex flex-1 flex-col gap-2 px-4 md:px-6 py-16">
-					{@render children()}
-				</div>
-			</div>
-		</Sidebar.Inset>
-	</div>
-</Sidebar.Provider>
+  <SiteHeader />
+  <div class="flex flex-1 flex-col">
+    <div class="@container/main flex flex-1 flex-col gap-2 px-4 py-6 md:px-6">
+      {@render children()}
+    </div>
+  </div>
+</div>
