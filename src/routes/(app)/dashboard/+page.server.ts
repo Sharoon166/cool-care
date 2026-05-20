@@ -32,7 +32,7 @@ function getTimeRangeDate(timeRange: TimeRange, customFrom?: string, customTo?: 
             end: new Date(customTo)
           };
         } catch (e) {
-          // Fallback to 30d if invalid dates
+          console.error(e)
           return getTimeRangeDate('30d');
         }
       }
@@ -136,41 +136,34 @@ function generateCompleteTimeSeries(
   return result;
 }
 
-export async function load({ url }) {
+// Separate query functions for streaming
+async function getMetrics(url: URL) {
   try {
-    // Database connection check
-    try {
-      await db.execute(sql`SELECT 1`);
-    } catch (dbErr) {
-      console.error('Database connection failed:', dbErr);
-      return {
-        metrics: {
-          totalRevenue: 0,
-          totalInvoices: 0,
-          totalQuotations: 0,
-          activeCustomers: 0
-        },
-        chartData: [],
-        recentInvoices: [],
-        topCustomers: [],
-        databaseError: true
-      };
-    }
-
-    // Handle both new time range format and legacy period format
     const timeRange = url.searchParams.get('timeRange') as TimeRange;
     const legacyPeriod = url.searchParams.get('period');
     const customFrom = url.searchParams.get('customFrom');
     const customTo = url.searchParams.get('customTo');
 
-    // Get date range for metrics
     const metricsRange = timeRange
       ? getTimeRangeDate(timeRange, customFrom || undefined, customTo || undefined)
       : getDateRange(legacyPeriod || 'last-3-months');
 
-    // Get current period metrics
-    const [totalRevenue, totalInvoices, totalQuotations, activeCustomers] = await Promise.all([
-      // Total revenue
+    // Calculate previous period range for MoM comparison
+    const periodDuration = metricsRange.end.getTime() - metricsRange.start.getTime();
+    const previousPeriodStart = new Date(metricsRange.start.getTime() - periodDuration);
+    const previousPeriodEnd = new Date(metricsRange.start.getTime());
+
+    const [
+      collectedRevenue,
+      previousCollectedRevenue,
+      outstandingAmount,
+      overdueInvoices,
+      totalQuotations,
+      convertedQuotations,
+      previousQuotations,
+      previousConvertedQuotations
+    ] = await Promise.all([
+      // Collected revenue (payments received in current period)
       db
         .select({ total: sql`COALESCE(SUM(${payments.amount}), 0)` })
         .from(payments)
@@ -183,20 +176,52 @@ export async function load({ url }) {
           )
         ),
 
-      // Total invoices
+      // Previous period collected revenue
       db
-        .select({ count: sql`COUNT(*)` })
-        .from(invoices)
+        .select({ total: sql`COALESCE(SUM(${payments.amount}), 0)` })
+        .from(payments)
+        .innerJoin(invoices, sql`${payments.invoiceId} = ${invoices.id}`)
         .where(
           and(
-            sql`${invoices.createdAt} >= ${metricsRange.start}`,
-            sql`${invoices.createdAt} <= ${metricsRange.end}`,
-            sql`${invoices.deletedAt} IS NULL`,
-            sql`${invoices.type} = 'invoice'`
+            sql`${payments.paymentDate} >= ${previousPeriodStart}`,
+            sql`${payments.paymentDate} < ${previousPeriodEnd}`,
+            sql`${invoices.deletedAt} IS NULL`
           )
         ),
 
-      // Total quotations
+      // Outstanding amount (unpaid invoices - all time, not just period)
+      db
+        .select({
+          total: sql`COALESCE(SUM(${invoices.balance}), 0)`,
+          count: sql`COUNT(*)`
+        })
+        .from(invoices)
+        .where(
+          and(
+            sql`${invoices.deletedAt} IS NULL`,
+            sql`${invoices.type} = 'invoice'`,
+            sql`${invoices.status} IN ('sent', 'pending', 'overdue', 'partial')`,
+            sql`${invoices.balance} > 0`
+          )
+        ),
+
+      // Overdue invoices (all time, not just period)
+      db
+        .select({
+          total: sql`COALESCE(SUM(${invoices.balance}), 0)`,
+          count: sql`COUNT(*)`
+        })
+        .from(invoices)
+        .where(
+          and(
+            sql`${invoices.deletedAt} IS NULL`,
+            sql`${invoices.type} = 'invoice'`,
+            sql`${invoices.status} = 'overdue'`,
+            sql`${invoices.balance} > 0`
+          )
+        ),
+
+      // Total quotations (in current period)
       db
         .select({ count: sql`COUNT(*)` })
         .from(invoices)
@@ -209,23 +234,118 @@ export async function load({ url }) {
           )
         ),
 
-      // Active customers
+      // Converted quotations (in current period)
       db
-        .select({ count: sql`COUNT(DISTINCT ${customers.id})` })
-        .from(customers)
-        .innerJoin(invoices, sql`${customers.id} = ${invoices.customerId}`)
+        .select({ count: sql`COUNT(*)` })
+        .from(invoices)
         .where(
           and(
-            sql`${customers.isActive} = true`,
-            sql`${customers.deletedAt} IS NULL`,
-            sql`${invoices.deletedAt} IS NULL`
+            sql`${invoices.createdAt} >= ${metricsRange.start}`,
+            sql`${invoices.createdAt} <= ${metricsRange.end}`,
+            sql`${invoices.deletedAt} IS NULL`,
+            sql`${invoices.type} = 'quotation'`,
+            sql`${invoices.convertedToInvoiceId} IS NOT NULL`
+          )
+        ),
+
+      // Previous period quotations
+      db
+        .select({ count: sql`COUNT(*)` })
+        .from(invoices)
+        .where(
+          and(
+            sql`${invoices.createdAt} >= ${previousPeriodStart}`,
+            sql`${invoices.createdAt} < ${previousPeriodEnd}`,
+            sql`${invoices.deletedAt} IS NULL`,
+            sql`${invoices.type} = 'quotation'`
+          )
+        ),
+
+      // Previous period converted quotations
+      db
+        .select({ count: sql`COUNT(*)` })
+        .from(invoices)
+        .where(
+          and(
+            sql`${invoices.createdAt} >= ${previousPeriodStart}`,
+            sql`${invoices.createdAt} < ${previousPeriodEnd}`,
+            sql`${invoices.deletedAt} IS NULL`,
+            sql`${invoices.type} = 'quotation'`,
+            sql`${invoices.convertedToInvoiceId} IS NOT NULL`
           )
         )
     ]);
 
-    const currentRevenue = totalRevenue[0]?.total || 0;
+    const currentCollected = Number(collectedRevenue[0]?.total || 0);
+    const previousCollected = Number(previousCollectedRevenue[0]?.total || 0);
+    const collectedChange = previousCollected > 0 
+      ? Math.round(((currentCollected - previousCollected) / previousCollected) * 100)
+      : 0;
 
-    // Get recent invoices
+    const totalQuotes = Number(totalQuotations[0]?.count || 0);
+    const convertedQuotes = Number(convertedQuotations[0]?.count || 0);
+    const conversionRate = totalQuotes > 0 ? Math.round((convertedQuotes / totalQuotes) * 100) : 0;
+
+    const previousTotalQuotes = Number(previousQuotations[0]?.count || 0);
+    const previousConvertedQuotes = Number(previousConvertedQuotations[0]?.count || 0);
+    const previousConversionRate = previousTotalQuotes > 0 
+      ? Math.round((previousConvertedQuotes / previousTotalQuotes) * 100) 
+      : 0;
+    const conversionRateChange = conversionRate - previousConversionRate;
+
+    return {
+      collectedRevenue: currentCollected,
+      collectedChange,
+      outstandingAmount: Number(outstandingAmount[0]?.total || 0),
+      outstandingCount: Number(outstandingAmount[0]?.count || 0),
+      overdueAmount: Number(overdueInvoices[0]?.total || 0),
+      overdueCount: Number(overdueInvoices[0]?.count || 0),
+      quoteConversionRate: conversionRate,
+      conversionRateChange,
+      totalQuotes,
+      convertedQuotes
+    };
+  } catch (err) {
+    console.error('Metrics loading error:', err);
+    throw err;
+  }
+}
+
+async function getChartData(url: URL) {
+  try {
+    const chartStartDate = new Date();
+    chartStartDate.setMonth(chartStartDate.getMonth() - 13);
+    chartStartDate.setDate(1);
+
+    const allPayments = await db
+      .select({
+        paymentDate: payments.paymentDate,
+        amount: payments.amount
+      })
+      .from(payments)
+      .innerJoin(invoices, sql`${payments.invoiceId} = ${invoices.id}`)
+      .where(
+        and(sql`${payments.paymentDate} >= ${chartStartDate}`, sql`${invoices.deletedAt} IS NULL`)
+      )
+      .orderBy(payments.paymentDate);
+
+    const paymentGroups = groupPaymentsByPeriod(allPayments, 'day');
+    const chartData = generateCompleteTimeSeries(
+      paymentGroups,
+      chartStartDate,
+      new Date(),
+      'day'
+    );
+
+    return chartData.filter((item) => item.date instanceof Date && !isNaN(item.date.getTime()));
+  } catch (err) {
+    console.error('Chart data loading error:', err);
+    throw err;
+  }
+}
+
+async function getRecentInvoices() {
+  try {
     const recentInvoices = await db
       .select({
         id: invoices.id,
@@ -241,89 +361,217 @@ export async function load({ url }) {
       .orderBy(desc(invoices.createdAt))
       .limit(10);
 
-    // Get ALL payments for chart (always get 12+ months for flexible filtering)
-    const chartStartDate = new Date();
-    chartStartDate.setMonth(chartStartDate.getMonth() - 13); // Get 13 months to be safe
-    chartStartDate.setDate(1);
+    return Array.isArray(recentInvoices)
+      ? recentInvoices.map((invoice) => ({
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          total: Number(invoice.total),
+          status: invoice.status || 'pending',
+          invoiceDate: invoice.invoiceDate,
+          customerName: invoice.customerName
+        }))
+      : [];
+  } catch (err) {
+    console.error('Recent invoices loading error:', err);
+    throw err;
+  }
+}
 
-    const allPayments = await db
+async function getPaymentMethodBreakdown(url: URL) {
+  try {
+    const timeRange = url.searchParams.get('timeRange') as TimeRange;
+    const legacyPeriod = url.searchParams.get('period');
+    const customFrom = url.searchParams.get('customFrom');
+    const customTo = url.searchParams.get('customTo');
+
+    const metricsRange = timeRange
+      ? getTimeRangeDate(timeRange, customFrom || undefined, customTo || undefined)
+      : getDateRange(legacyPeriod || 'last-3-months');
+
+    const paymentBreakdown = await db
       .select({
-        paymentDate: payments.paymentDate,
-        amount: payments.amount
+        method: sql`CASE 
+          WHEN ${payments.paymentMethod} = 'custom' THEN COALESCE(${payments.customMethod}, 'Custom')
+          ELSE ${payments.paymentMethod}
+        END`,
+        total: sql`COALESCE(SUM(${payments.amount}), 0)`,
+        count: sql`COUNT(*)`
       })
       .from(payments)
       .innerJoin(invoices, sql`${payments.invoiceId} = ${invoices.id}`)
       .where(
-        and(sql`${payments.paymentDate} >= ${chartStartDate}`, sql`${invoices.deletedAt} IS NULL`)
+        and(
+          sql`${payments.paymentDate} >= ${metricsRange.start}`,
+          sql`${payments.paymentDate} <= ${metricsRange.end}`,
+          sql`${invoices.deletedAt} IS NULL`
+        )
       )
-      .orderBy(payments.paymentDate);
+      .groupBy(sql`CASE 
+        WHEN ${payments.paymentMethod} = 'custom' THEN COALESCE(${payments.customMethod}, 'Custom')
+        ELSE ${payments.paymentMethod}
+      END`)
+      .orderBy(desc(sql`COALESCE(SUM(${payments.amount}), 0)`));
 
-    // Always return daily data for the full 13-month window.
-    // Client handles all range filtering/aggregation locally.
-    const paymentGroups = groupPaymentsByPeriod(allPayments, 'day');
-    const chartData = generateCompleteTimeSeries(
-      paymentGroups,
-      chartStartDate,
-      new Date(),
-      'day'
-    );
+    const totalAmount = paymentBreakdown.reduce((sum, item) => sum + Number(item.total), 0);
 
-    // Get top customers by revenue (for the selected period)
-    const topCustomers = await db
+    return Array.isArray(paymentBreakdown)
+      ? paymentBreakdown.map((item) => ({
+          method: String(item.method),
+          total: Number(item.total),
+          count: Number(item.count),
+          percentage: totalAmount > 0 ? Math.round((Number(item.total) / totalAmount) * 100) : 0
+        }))
+      : [];
+  } catch (err) {
+    console.error('Payment method breakdown loading error:', err);
+    throw err;
+  }
+}
+
+async function getInvoicesNeedingAttention() {
+  try {
+    const invoicesNeedingAttention = await db
       .select({
+        id: invoices.id,
+        invoiceNumber: invoices.invoiceNumber,
+        balance: invoices.balance,
+        status: invoices.status,
+        invoiceDate: invoices.invoiceDate,
+        customerName: customers.name
+      })
+      .from(invoices)
+      .innerJoin(customers, sql`${customers.id} = ${invoices.customerId}`)
+      .where(
+        and(
+          sql`${invoices.deletedAt} IS NULL`,
+          sql`${invoices.type} = 'invoice'`,
+          sql`${invoices.status} IN ('overdue', 'sent', 'pending', 'partial')`,
+          sql`${invoices.balance} > 0`
+        )
+      )
+      .orderBy(
+        // Prioritize overdue first, then by invoice date (oldest first)
+        sql`CASE WHEN ${invoices.status} = 'overdue' THEN 0 ELSE 1 END`,
+        invoices.invoiceDate
+      )
+      .limit(10);
+
+    return Array.isArray(invoicesNeedingAttention)
+      ? invoicesNeedingAttention.map((invoice) => {
+          const daysOverdue = invoice.status === 'overdue' 
+            ? Math.floor((Date.now() - new Date(invoice.invoiceDate).getTime()) / (1000 * 60 * 60 * 24))
+            : 0;
+          
+          return {
+            id: invoice.id,
+            invoiceNumber: invoice.invoiceNumber,
+            balance: Number(invoice.balance),
+            status: invoice.status || 'pending',
+            invoiceDate: invoice.invoiceDate,
+            customerName: invoice.customerName,
+            daysOverdue
+          };
+        })
+      : [];
+  } catch (err) {
+    console.error('Invoices needing attention loading error:', err);
+    throw err;
+  }
+}
+
+async function getCustomersWithOutstanding() {
+  try {
+    const customersWithBalance = await db
+      .select({
+        customerId: customers.id,
         name: customers.name,
-        totalRevenue: sql`COALESCE(SUM(${payments.amount}), 0)`,
-        invoiceCount: sql`COUNT(DISTINCT ${invoices.id})`
+        outstandingAmount: sql`COALESCE(SUM(${invoices.balance}), 0)`,
+        invoiceCount: sql`COUNT(DISTINCT ${invoices.id})`,
+        oldestInvoiceDate: sql`MIN(${invoices.invoiceDate})`
       })
       .from(customers)
       .innerJoin(invoices, sql`${customers.id} = ${invoices.customerId}`)
-      .innerJoin(payments, sql`${invoices.id} = ${payments.invoiceId}`)
       .where(
         and(
           sql`${customers.deletedAt} IS NULL`,
           sql`${invoices.deletedAt} IS NULL`,
-          sql`${payments.paymentDate} >= ${metricsRange.start}`,
-          sql`${payments.paymentDate} <= ${metricsRange.end}`
+          sql`${invoices.type} = 'invoice'`,
+          sql`${invoices.status} IN ('sent', 'pending', 'overdue', 'partial')`,
+          sql`${invoices.balance} > 0`
         )
       )
       .groupBy(customers.id, customers.name)
-      .orderBy(desc(sql`COALESCE(SUM(${payments.amount}), 0)`))
+      .orderBy(desc(sql`COALESCE(SUM(${invoices.balance}), 0)`))
       .limit(5);
 
-    return {
-      metrics: {
-        totalRevenue: Number(currentRevenue),
-        totalInvoices: Number(totalInvoices[0]?.count || 0),
-        totalQuotations: Number(totalQuotations[0]?.count || 0),
-        activeCustomers: Number(activeCustomers[0]?.count || 0)
-      },
-      chartData: chartData.filter(
-        (item) => item.date instanceof Date && !isNaN(item.date.getTime())
-      ),
-      recentInvoices: Array.isArray(recentInvoices) ? recentInvoices : [],
-      topCustomers: Array.isArray(topCustomers)
-        ? topCustomers.map((customer) => ({
-            ...customer,
-            totalRevenue: Number(customer.totalRevenue),
-            invoiceCount: Number(customer.invoiceCount)
-          }))
-        : [],
-      timeRange: timeRange || '6m',
-      period: legacyPeriod || timeRange || 'last-3-months'
-    };
+    console.log("customers with balance",customersWithBalance)
+
+    return Array.isArray(customersWithBalance)
+      ? customersWithBalance.map((customer) => {
+          const oldestDate = customer.oldestInvoiceDate ? new Date(customer.oldestInvoiceDate) : new Date();
+          const daysOutstanding = Math.floor((Date.now() - oldestDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          return {
+            customerId: customer.customerId,
+            name: customer.name,
+            outstandingAmount: Number(customer.outstandingAmount),
+            invoiceCount: Number(customer.invoiceCount),
+            daysOutstanding
+          };
+        })
+      : [];
   } catch (err) {
-    console.error('Dashboard data loading error:', err);
+    console.error('Customers with outstanding loading error:', err);
+    throw err;
+  }
+}
+
+export async function load({ url }) {
+  // Check database connectivity (critical blocking check)
+  let databaseError = false;
+  try {
+    await db.execute(sql`SELECT 1`);
+  } catch (dbErr) {
+    console.error('Database connection failed:', dbErr);
+    databaseError = true;
+  }
+
+  // If database is down, return error state immediately
+  if (databaseError) {
     return {
-      metrics: {
-        totalRevenue: 0,
-        totalInvoices: 0,
-        totalQuotations: 0,
-        activeCustomers: 0
-      },
-      chartData: [],
-      recentInvoices: [],
-      topCustomers: [],
-      databaseError: true
+      databaseError: true,
+      metrics: Promise.resolve({
+        collectedRevenue: 0,
+        collectedChange: 0,
+        outstandingAmount: 0,
+        outstandingCount: 0,
+        overdueAmount: 0,
+        overdueCount: 0,
+        quoteConversionRate: 0,
+        conversionRateChange: 0,
+        totalQuotes: 0,
+        convertedQuotes: 0
+      }),
+      chartData: Promise.resolve([]),
+      invoicesNeedingAttention: Promise.resolve([]),
+      customersWithOutstanding: Promise.resolve([]),
+      recentInvoices: Promise.resolve([]),
+      paymentMethodBreakdown: Promise.resolve([]),
+      timeRange: (url.searchParams.get('timeRange') as TimeRange) || '6m',
+      period: url.searchParams.get('period') || 'last-3-months'
     };
   }
+
+  // Return unresolved promises for streaming
+  return {
+    databaseError: false,
+    metrics: getMetrics(url),
+    chartData: getChartData(url),
+    invoicesNeedingAttention: getInvoicesNeedingAttention(),
+    customersWithOutstanding: getCustomersWithOutstanding(),
+    recentInvoices: getRecentInvoices(),
+    paymentMethodBreakdown: getPaymentMethodBreakdown(url),
+    timeRange: (url.searchParams.get('timeRange') as TimeRange) || '6m',
+    period: url.searchParams.get('period') || 'last-3-months'
+  };
 }

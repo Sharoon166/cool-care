@@ -1,5 +1,4 @@
 <script lang="ts">
-  import CreditCardIcon from '@tabler/icons-svelte/icons/credit-card';
   import DotsVerticalIcon from '@tabler/icons-svelte/icons/dots-vertical';
   import LogoutIcon from '@tabler/icons-svelte/icons/logout';
   import * as Avatar from '$lib/components/ui/avatar/index.js';
@@ -7,10 +6,8 @@
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { authClient } from '../auth-client';
   import { toast } from 'svelte-sonner';
-  import { goto } from '$app/navigation';
   import { page } from '$app/state';
 
-  // let { user }: { user: { name: string; email: string; avatar: string } } = $props();
   let user = page.data?.user ?? { name: '', email: '', avatar: '' };
 
   const sidebar = Sidebar.useSidebar();
@@ -19,7 +16,7 @@
     try {
       await authClient.signOut();
       toast.success('Logged out successfully');
-      goto('/login');
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Failed to logout');
@@ -52,27 +49,27 @@
         {/snippet}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
-        class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
+        class="w-(--bits-dropdown-menu-anchor-width) min-w-56"
         side={sidebar.isMobile ? 'bottom' : 'right'}
         align="end"
-        sideOffset={4}
+        sideOffset={8}
       >
         <DropdownMenu.Label class="p-0 font-normal">
-          <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-            <Avatar.Root class="size-8 rounded-lg">
+          <div class="flex items-center gap-3 px-2 py-2 text-start">
+            <Avatar.Root class="size-10 rounded-xl brutal-border">
               <Avatar.Image src={user.avatar} alt={user.name} />
-              <Avatar.Fallback class="rounded-lg">{user.name[0]}</Avatar.Fallback>
+              <Avatar.Fallback class="rounded-xl bg-primary/10 font-bold text-primary">{user.name[0]}</Avatar.Fallback>
             </Avatar.Root>
-            <div class="grid flex-1 text-start text-sm leading-tight">
-              <span class="truncate font-medium">{user.name}</span>
-              <span class="truncate text-xs text-muted-foreground">
+            <div class="grid flex-1 text-start leading-tight">
+              <span class="truncate font-extrabold">{user.name}</span>
+              <span class="truncate text-xs font-semibold text-muted-foreground">
                 {user.email}
               </span>
             </div>
           </div>
         </DropdownMenu.Label>
         <DropdownMenu.Separator />
-        <DropdownMenu.Item onclick={handleLogout}>
+        <DropdownMenu.Item onclick={handleLogout} class="bg-[#ff8a8a] hover:bg-[#ff7070] text-black font-bold">
           <LogoutIcon />
           Log out
         </DropdownMenu.Item>

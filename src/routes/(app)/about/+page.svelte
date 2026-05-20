@@ -49,7 +49,7 @@
   <!-- Footer -->
   <div class="border-t-2 border-brutal pt-8 text-center">
     <p class="text-sm font-bold text-muted-foreground">
-      © 2025 Cool Care. Made with <HeartIcon class="inline h-4 w-4 text-red-500" /> for my dad.
+      © 2026 Cool Care. Made with <HeartIcon class="inline h-4 w-4 text-red-500" /> for my dad.
     </p>
   </div>
 </div>

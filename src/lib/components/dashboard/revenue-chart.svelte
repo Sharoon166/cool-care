@@ -17,7 +17,10 @@
   import ChartTooltip from '../ui/chart/chart-tooltip.svelte';
   import ChartContainer from '../ui/chart/chart-container.svelte';
 
-  let { data } = $props();
+  let { chartData, databaseError = false } = $props<{
+    chartData: Array<{ date: Date; revenue: number }>;
+    databaseError?: boolean;
+  }>();
 
   type TimeRange = '7d' | '30d' | '6m' | 'custom';
 
@@ -29,11 +32,9 @@
     } as const;
 
   // Process chart data
-  let chartData = $derived.by(() => {
-    const realChartData = data?.chartData;
-
-    if (Array.isArray(realChartData) && realChartData.length > 0) {
-      return realChartData
+  let processedChartData = $derived.by(() => {
+    if (Array.isArray(chartData) && chartData.length > 0) {
+      return chartData
         .map((item: any) => ({
           date: new Date(item.date),
           revenue: Number(item.revenue) || 0
@@ -45,7 +46,7 @@
     }
 
     // Fallback sample data
-    if (data?.databaseError) {
+    if (databaseError) {
       const now = new Date();
       return [
         { date: new Date(now.getFullYear(), now.getMonth() - 5, 1), revenue: 0 },
@@ -67,8 +68,8 @@
   let cacheReady = $state(false);
 
   $effect(() => {
-    if (chartData.length > 0 && !cacheReady) {
-      chartCache = chartData;
+    if (processedChartData.length > 0 && !cacheReady) {
+      chartCache = processedChartData;
       cacheReady = true;
     }
   });
@@ -113,6 +114,7 @@
           to: new CalendarDate(toDate.getFullYear(), toDate.getMonth() + 1, toDate.getDate())
         };
       } catch (e) {
+        console.error(e)
         // Invalid date format, keep defaults
       }
     }
@@ -121,7 +123,7 @@
   // Filter data based on time range.
   // Uses cached data once seeded so toggling ranges doesn't need a server round-trip.
   const filteredData = $derived.by(() => {
-    const source = cacheReady ? chartCache : chartData;
+    const source = cacheReady ? chartCache : processedChartData;
     if (!Array.isArray(source) || source.length === 0) return [];
 
     const now = new Date();
@@ -253,11 +255,68 @@
     showCustomCalendar = false;
   }
 
+  // Actionable metrics derived from filtered data
   const totalRevenue = $derived(filteredData.reduce((sum, item) => sum + item.revenue, 0));
-  const averageRevenue = $derived(filteredData.length > 0 ? totalRevenue / filteredData.length : 0);
+  
+  // Peak day - the day with highest revenue
+  const peakDay = $derived.by(() => {
+    if (filteredData.length === 0) return null;
+    
+    const peak = filteredData.reduce((max, item) => 
+      item.revenue > max.revenue ? item : max
+    , filteredData[0]);
+    
+    return peak;
+  });
+  
+  // Days with revenue - how many days had actual revenue
+  const daysWithRevenue = $derived(
+    filteredData.filter(item => item.revenue > 0).length
+  );
+  
+  // Total days in period
+  const totalDays = $derived(filteredData.length);
+  
+  // Month-over-month change (compare to previous period)
+  const momChange = $derived.by(() => {
+    if (filteredData.length === 0) return null;
+    
+    // Calculate previous period based on current range
+    const currentPeriodDays = filteredData.length;
+    const source = cacheReady ? chartCache : processedChartData;
+    
+    // Get the period before current filtered data
+    const firstDate = filteredData[0]?.date;
+    if (!firstDate) return null;
+    
+    const periodStart = new Date(firstDate);
+    const periodEnd = new Date(filteredData[filteredData.length - 1]?.date);
+    const periodDuration = periodEnd.getTime() - periodStart.getTime();
+    
+    const previousStart = new Date(periodStart.getTime() - periodDuration);
+    const previousEnd = new Date(periodStart);
+    
+    const previousData = source.filter(
+      item => item.date >= previousStart && item.date < previousEnd
+    );
+    
+    const previousRevenue = previousData.reduce((sum, item) => sum + item.revenue, 0);
+    
+    if (previousRevenue === 0) {
+      return totalRevenue > 0 ? { percent: 100, direction: 'up' } : null;
+    }
+    
+    const change = ((totalRevenue - previousRevenue) / previousRevenue) * 100;
+    
+    return {
+      percent: Math.abs(Math.round(change)),
+      direction: change >= 0 ? 'up' : 'down',
+      previousRevenue
+    };
+  });
 </script>
 
-<Card.Root class="dark @container/card overflow-hidden brutal-card bg-[#111111] text-foreground">
+<Card.Root class="dark @container/card overflow-hidden brutal-card bg-brutal text-foreground">
   <Card.Header class="border-b border-border/40 pb-4">
     <Card.Title class="text-xl font-bold text-white">Revenue</Card.Title>
     <Card.Description class="text-sm text-muted-foreground">
@@ -364,14 +423,14 @@
           ></path>
         </svg>
         <h3 class="mb-2 text-lg font-semibold text-foreground">
-          {data?.databaseError ? 'No Data Available' : 'No Revenue Data'}
+          {databaseError ? 'No Data Available' : 'No Revenue Data'}
         </h3>
         <p class="text-sm text-muted-foreground">
-          {data?.databaseError
+          {databaseError
             ? 'Set up your database to see revenue charts'
             : `No payments recorded in selected time period (${selectedLabel.toLowerCase()})`}
         </p>
-        {#if data?.databaseError}
+        {#if databaseError}
           <div class="mt-4 text-xs text-muted-foreground">
             Run <code class="rounded bg-muted px-1 py-0.5">npm run db:push</code> to create database tables
           </div>
@@ -383,63 +442,94 @@
       </div>
     {:else}
       <div class="grid grid-cols-1 gap-6 @[900px]/card:grid-cols-[340px_1fr]">
-        <!-- Left Column: Metrics Display inspired by Mock -->
+        <!-- Left Column: Actionable Metrics -->
         <div
           class="flex flex-col justify-between rounded-[18px] border-2 border-border/40 bg-black/40 p-6 text-card-foreground shadow-[inset_0px_2px_4px_rgba(0,0,0,0.4)]"
         >
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
-                >Revenue Period</span
-              >
-              <span class="rounded bg-[#A4F06C]/10 px-2 py-0.5 text-xs font-bold text-[#A4F06C]"
-                >+12%</span
-              >
-            </div>
-
-            <div class="space-y-1">
-              <span
-                class="text-4xl font-black tracking-tight text-[#A4F06C] sm:text-5xl"
-                style="font-family: 'Poppins', sans-serif;"
-              >
-                {formatPKR.short(totalRevenue)}
-              </span>
-              <p class="text-xs text-muted-foreground">Total Inflow Period</p>
-            </div>
+          <!-- Hero Number -->
+          <div class="space-y-2">
+            <span
+              class="text-4xl font-black tracking-tight text-[#A4F06C] sm:text-5xl"
+              style="font-family: 'Poppins', sans-serif;"
+            >
+              {formatPKR.short(totalRevenue)}
+            </span>
+            <p class="text-xs text-muted-foreground">
+              Total · {selectedLabel}
+            </p>
           </div>
 
-          <div class="mt-8 grid grid-cols-2 gap-4 border-t border-border/40 pt-6">
-            <div class="space-y-2">
-              <div class="flex items-center gap-1.5">
-                <div class="flex h-3 items-end gap-0.5">
-                  <div class="h-1.5 w-1 bg-[#A4F06C]"></div>
-                  <div class="h-3 w-1 bg-[#A4F06C]"></div>
-                  <div class="h-2 w-1 bg-[#A4F06C]"></div>
+          <!-- Actionable Metrics Grid -->
+          <div class="mt-8 space-y-4 border-t border-border/40 pt-6">
+            <!-- Peak Day -->
+            {#if peakDay && peakDay.revenue > 0}
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <div class="h-2 w-2 rounded-full bg-[#A4F06C]"></div>
+                  <span class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    >Peak Day</span
+                  >
                 </div>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-sm font-bold text-foreground">
+                    {peakDay.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                  <span class="text-xs font-semibold text-muted-foreground">
+                    {formatPKR.compact(peakDay.revenue)}
+                  </span>
+                </div>
+              </div>
+            {/if}
+
+            <!-- Active Days -->
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5">
+                <div class="h-2 w-2 rounded-full bg-[#B4B0FF]"></div>
                 <span class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
-                  >Inflow</span
+                  >Active Days</span
                 >
               </div>
-              <div class="truncate text-sm font-bold text-foreground">
-                {formatPKR.whole(totalRevenue)}
+              <div class="flex items-baseline gap-2">
+                <span class="text-sm font-bold text-foreground">
+                  {daysWithRevenue} / {totalDays}
+                </span>
+                <span class="text-xs font-semibold text-muted-foreground">
+                  {totalDays > 0 ? Math.round((daysWithRevenue / totalDays) * 100) : 0}%
+                </span>
               </div>
             </div>
 
-            <div class="space-y-2">
-              <div class="flex items-center gap-1.5">
-                <div class="flex h-3 items-end gap-0.5">
-                  <div class="h-2.5 w-1 bg-[#B4B0FF]"></div>
-                  <div class="h-1.5 w-1 bg-[#B4B0FF]"></div>
-                  <div class="h-3 w-1 bg-[#B4B0FF]"></div>
+            <!-- Month-over-Month Change -->
+            {#if momChange}
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <div class="h-2 w-2 rounded-full bg-[#FFE285]"></div>
+                  <span class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    >vs Last Period</span
+                  >
                 </div>
-                <span class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
-                  >Avg / Period</span
-                >
+                <div class="flex items-baseline gap-2">
+                  <span class="text-sm font-bold {momChange.direction === 'up' ? 'text-[#86efac]' : 'text-[#ff8a8a]'}">
+                    {momChange.direction === 'up' ? '↑' : '↓'} {momChange.percent}%
+                  </span>
+                  <span class="text-xs font-semibold text-muted-foreground">
+                    {formatPKR.compact(momChange.previousRevenue ?? 0)}
+                  </span>
+                </div>
               </div>
-              <div class="truncate text-sm font-bold text-foreground">
-                {formatPKR.whole(averageRevenue)}
+            {:else}
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <div class="h-2 w-2 rounded-full bg-[#FFE285]"></div>
+                  <span class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    >vs Last Period</span
+                  >
+                </div>
+                <div class="text-sm font-bold text-muted-foreground">
+                  No data
+                </div>
               </div>
-            </div>
+            {/if}
           </div>
         </div>
 

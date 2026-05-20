@@ -15,7 +15,14 @@
     onInvoiceSelect,
     readonly = false,
     customerId = null
-  } = $props();
+  } = $props<{
+    invoices: Array<any>;
+    quotations: Array<any>;
+    payments: Array<any>;
+    onInvoiceSelect?: (invoice: any) => void;
+    readonly?: boolean;
+    customerId?: string | null;
+  }>();
 
   function getStatusColor(status: string) {
     switch (status.toLowerCase()) {

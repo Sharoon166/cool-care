@@ -7,7 +7,13 @@
   import { formatPKR } from '$lib/utils';
   import ArrowUpRight from '@tabler/icons-svelte/icons/arrow-up-right';
 
-  let { data } = $props();
+  let { topCustomers } = $props<{
+    topCustomers: Array<{
+      name: string;
+      totalRevenue: number;
+      invoiceCount: number;
+    }>;
+  }>();
 
   const formatCurrency = formatPKR.standard;
 </script>
@@ -21,13 +27,13 @@
     <Card.Description class="text-muted-foreground">Highest revenue customers</Card.Description>
   </Card.Header>
   <Card.Content class="space-y-4 pt-4">
-    {#if data.topCustomers.length === 0}
+    {#if topCustomers.length === 0}
       <div class="py-8 text-center text-muted-foreground">
         <UserIcon class="mx-auto mb-2 h-12 w-12 opacity-50" />
         <p>No customers found</p>
       </div>
     {:else}
-      {#each data.topCustomers as customer, index}
+      {#each topCustomers as customer, index}
         <div
           class="group flex items-center justify-between rounded-[16px] brutal bg-background p-3.5 transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:brutal-shadow-md"
         >

@@ -11,7 +11,27 @@
   import ReceiptIcon from '@tabler/icons-svelte/icons/receipt';
   import FileTextIcon from '@tabler/icons-svelte/icons/file-text';
 
-  let { customer, metrics } = $props();
+  let { customer, metrics } = $props<{
+    customer: {
+      id: string;
+      name: string;
+      email?: string;
+      phone: string;
+      address: string;
+      isActive: boolean;
+      createdAt: Date;
+    };
+    metrics: {
+      totalInvoices: number;
+      totalQuotations: number;
+      totalRevenue: number;
+      totalPaid: number;
+      totalOutstanding: number;
+      avgInvoiceValue: number;
+      lastPaymentDate: Date | null;
+      customerSince: Date;
+    };
+  }>();
 </script>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
