@@ -504,8 +504,6 @@ async function getCustomersWithOutstanding() {
       .orderBy(desc(sql`COALESCE(SUM(${invoices.balance}), 0)`))
       .limit(5);
 
-    console.log("customers with balance",customersWithBalance)
-
     return Array.isArray(customersWithBalance)
       ? customersWithBalance.map((customer) => {
           const oldestDate = customer.oldestInvoiceDate ? new Date(customer.oldestInvoiceDate) : new Date();
