@@ -1,9 +1,8 @@
-
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import type { Customer } from '$lib/server/db/schema';
-  import Button from '@//components/ui/button/button.svelte';
+  import Button from '$lib/components/ui/button/button.svelte';
   import {
     Select,
     SelectTrigger,
@@ -29,22 +28,22 @@
   } from '$lib/components/ui/table/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
 
-  import Plus from '@tabler/icons-svelte/icons/plus';
-  import Search from '@tabler/icons-svelte/icons/search';
-  import ToggleRight from '@tabler/icons-svelte/icons/toggle-right';
-  import ToggleLeft from '@tabler/icons-svelte/icons/toggle-left';
-  import Trash from '@tabler/icons-svelte/icons/trash';
-  import Edit from '@tabler/icons-svelte/icons/edit';
-  import UsersGroup from '@tabler/icons-svelte/icons/users-group';
-  import SearchOff from '@tabler/icons-svelte/icons/search-off';
-  import PageHeader from '@//components/page-header.svelte';
-  import CustomerForm from '@//components/customers/customer-form.svelte';
-  import Users from '@tabler/icons-svelte/icons/users';
-  import Crown from '@tabler/icons-svelte/icons/crown';
-  import CircleOff from '@tabler/icons-svelte/icons/circle-off';
-  import CircleDashedCheck from '@tabler/icons-svelte/icons/circle-dashed-check';
-  import { InputGroup, InputGroupAddon, InputGroupInput } from '@//components/ui/input-group';
-  import { ConfirmDeleteDialog, confirmDelete } from '$lib/components/ui/confirm-delete-dialog';
+import Plus from '@tabler/icons-svelte/icons/plus';
+import Search from '@tabler/icons-svelte/icons/search';
+import ToggleRight from '@tabler/icons-svelte/icons/toggle-right';
+import ToggleLeft from '@tabler/icons-svelte/icons/toggle-left';
+import Trash from '@tabler/icons-svelte/icons/trash';
+import Edit from '@tabler/icons-svelte/icons/edit';
+import UsersGroup from '@tabler/icons-svelte/icons/users-group';
+import SearchOff from '@tabler/icons-svelte/icons/search-off';
+import PageHeader from '$lib/components/page-header.svelte';
+import CustomerForm from '$lib/components/customers/customer-form.svelte';
+import Users from '@tabler/icons-svelte/icons/users';
+import Coins from '@tabler/icons-svelte/icons/coins';
+import AlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '$lib/components/ui/input-group';
+import { ConfirmDeleteDialog, confirmDelete } from '$lib/components/ui/confirm-delete-dialog';
+import { formatPKR } from '$lib/utils';
 
   let { data, form } = $props();
 
@@ -53,6 +52,7 @@
   let searchQuery = $state('');
   let filterPriority = $state('all');
   let filterStatus = $state('all');
+  let togglingCustomers: Record<string, boolean> = $state({});
 
   // Filtered customers
   let filteredCustomers = $derived(
@@ -118,13 +118,6 @@
     });
   }
 
-  // Stats
-  let stats = $derived({
-    total: data.customers.length,
-    active: data.customers.filter((c) => c.isActive).length,
-    inactive: data.customers.filter((c) => !c.isActive).length,
-    vip: data.customers.filter((c) => c.priority === 'vip').length
-  });
 </script>
 
 <svelte:head>
@@ -143,9 +136,42 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <!-- Total Customers -->
+      <!-- Lifetime Revenue -->
       <div
         class="flex items-center gap-4 rounded-3xl brutal-border bg-[#86efac] p-5 brutal-shadow-md"
+      >
+        <div
+          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
+        >
+          <Coins class="h-6 w-6" />
+        </div>
+        <div class="space-y-0.5">
+          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Lifetime Revenue</span>
+          <div class="font-space text-3xl font-extrabold">
+            {formatPKR.compact(data.stats.totalRevenue)}
+          </div>
+        </div>
+      </div>
+
+      <!-- Need Collection -->
+      <div
+        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#ff8a8a] p-5 brutal-shadow-md"
+      >
+        <div
+          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
+        >
+          <AlertTriangle class="h-6 w-6" />
+        </div>
+        <div class="space-y-0.5">
+          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Need Collection</span>
+          <div class="font-space text-3xl font-extrabold">{data.stats.needCollectionCount}</div>
+          <p class="text-xs font-semibold text-muted-foreground">customers with unpaid invoices</p>
+        </div>
+      </div>
+
+      <!-- Repeat Customers -->
+      <div
+        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#c084fc] p-5 brutal-shadow-md"
       >
         <div
           class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
@@ -153,63 +179,33 @@
           <Users class="h-6 w-6" />
         </div>
         <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Total Customers</span>
-          <div class="font-space text-3xl font-extrabold">{stats.total}</div>
+          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Repeat Customers</span>
+          <div class="font-space text-3xl font-extrabold">{data.stats.repeatCustomers}</div>
+          <p class="text-xs font-semibold text-muted-foreground">with 2+ invoices</p>
         </div>
       </div>
 
-      <!-- Active -->
+      <!-- New This Month -->
       <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#c084fc] p-5 brutal-shadow-md"
+        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#fbbf24] p-5 brutal-shadow-md"
       >
         <div
           class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
         >
-          <CircleDashedCheck class="h-6 w-6" />
+          <Plus class="h-6 w-6" />
         </div>
         <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Active</span>
-          <div class="font-space text-3xl font-extrabold">{stats.active}</div>
-        </div>
-      </div>
-
-      <!-- Inactive -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#fde047] p-5 brutal-shadow-md"
-      >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <CircleOff class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Inactive</span>
-          <div class="font-space text-3xl font-extrabold">{stats.inactive}</div>
-        </div>
-      </div>
-
-      <!-- VIP Customers -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-brutal p-5 text-white brutal-shadow-md"
-      >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <Crown class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="text-xs font-extrabold tracking-wider text-white/80 uppercase"
-            >VIP Customers</span
-          >
-          <div class="font-space text-3xl font-extrabold text-white">{stats.vip}</div>
+          <span class="/80 text-xs font-extrabold tracking-wider uppercase">New This Month</span>
+          <div class="font-space text-3xl font-extrabold">{data.stats.newThisMonth}</div>
+          <p class="text-xs font-semibold text-muted-foreground">customers added</p>
         </div>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-col gap-4 md:flex-row">
+    <div class="flex flex-wrap justify-between gap-4">
       <!-- Search -->
-      <InputGroup class="shadow-transparent">
+      <InputGroup class="max-w-sm shadow-transparent">
         <InputGroupAddon><Search class="h-5 w-5" /></InputGroupAddon>
         <InputGroupInput
           bind:value={searchQuery}
@@ -217,41 +213,43 @@
         />
       </InputGroup>
 
-      <Select type="single" bind:value={filterPriority}>
-        <SelectTrigger class="capitalize">
-          {filterPriority == 'all' ? 'All Priorities' : filterPriority}
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Priorities</SelectItem>
-          <SelectItem value="normal">Normal</SelectItem>
-          <SelectItem value="high">High</SelectItem>
-          <SelectItem value="vip">VIP</SelectItem>
-        </SelectContent>
-      </Select>
+      <div class="flex items-center gap-2">
+        <Select type="single" bind:value={filterPriority}>
+          <SelectTrigger class="capitalize">
+            {filterPriority == 'all' ? 'All Priorities' : filterPriority}
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Priorities</SelectItem>
+            <SelectItem value="normal">Normal</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="vip">VIP</SelectItem>
+          </SelectContent>
+        </Select>
 
-      <Select type="single" bind:value={filterStatus}>
-        <SelectTrigger class="capitalize">
-          {filterStatus == 'all' ? 'All Status' : filterStatus}
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Status</SelectItem>
-          <SelectItem value="active">Active</SelectItem>
-          <SelectItem value="inactive">Inactive</SelectItem>
-        </SelectContent>
-      </Select>
+        <Select type="single" bind:value={filterStatus}>
+          <SelectTrigger class="capitalize">
+            {filterStatus == 'all' ? 'All Status' : filterStatus}
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   </div>
 
   <!-- Customer Table -->
-  <div class="overflow-hidden brutal-card rounded-[24px] bg-card p-1">
+  <div class="overflow-hidden brutal-card rounded-3xl bg-card p-1">
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>#</TableHead>
-          <TableHead class="w-[300px]">Customer</TableHead>
-          <TableHead>Contact</TableHead>
-          <TableHead>Location</TableHead>
-          <TableHead>Priority</TableHead>
+          <TableHead class="w-8 md:w-12">#</TableHead>
+          <TableHead>Customer</TableHead>
+          <TableHead class="hidden md:table-cell">Contact</TableHead>
+          <TableHead class="hidden lg:table-cell">Location</TableHead>
+          <TableHead class="hidden lg:table-cell">Priority</TableHead>
           <TableHead>Status</TableHead>
           <TableHead class="text-right">Actions</TableHead>
         </TableRow>
@@ -259,33 +257,33 @@
       <TableBody>
         {#each filteredCustomers as customer, index (customer.id)}
           <TableRow>
-            <TableCell class="font-space text-sm font-extrabold ">
-              <div>{index + 1}.</div>
+            <TableCell class="w-8 font-space text-sm font-extrabold md:w-12">
+              {index + 1}.
             </TableCell>
-            <TableCell class="font-extrabold ">
-              <div class="text-sm">{customer.name}</div>
+            <TableCell class="max-w-50 min-w-0 font-extrabold">
+              <div class="truncate text-sm">{customer.name}</div>
               {#if customer.companyName}
-                <div class="text-xs font-semibold text-muted-foreground">
+                <div class="truncate text-xs font-semibold text-muted-foreground">
                   {customer.companyName}
                 </div>
               {/if}
             </TableCell>
-            <TableCell class="text-sm font-semibold ">
-              <div>{customer.phone}</div>
+            <TableCell class="hidden text-sm font-semibold md:table-cell">
+              <div class="truncate">{customer.phone}</div>
               {#if customer.email}
-                <div class="text-xs font-semibold text-muted-foreground">
+                <div class="truncate text-xs font-semibold text-muted-foreground">
                   {customer.email}
                 </div>
               {/if}
             </TableCell>
-            <TableCell class="text-sm font-bold ">
+            <TableCell class="hidden text-sm font-bold lg:table-cell">
               {#if customer.city}
                 {customer.city}
               {:else}
                 <span class="text-muted-foreground">-</span>
               {/if}
             </TableCell>
-            <TableCell>
+            <TableCell class="hidden lg:table-cell">
               <Badge
                 variant={customer.priority === 'vip'
                   ? 'default'
@@ -305,15 +303,25 @@
               </Badge>
             </TableCell>
             <TableCell>
-              <form method="POST" action="?/toggleActive" use:enhance>
+              <form method="POST" action="?/toggleActive" use:enhance={() => {
+                togglingCustomers[customer.id] = true;
+                return async ({ update }) => {
+                  await update();
+                  togglingCustomers[customer.id] = false;
+                };
+              }}>
                 <input type="hidden" name="id" value={customer.id} />
                 <input type="hidden" name="isActive" value={customer.isActive} />
                 <button
                   type="submit"
-                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-brutal px-2.5 py-0.5 font-space text-xs font-bold capitalize shadow-[1.5px_1.5px_0px_var(--color-brutal)] transition hover:opacity-80
-									{customer.isActive ? 'bg-[#86efac] ' : 'bg-[#ff8a8a] '}"
+                  disabled={togglingCustomers[customer.id]}
+                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-brutal px-2.5 py-0.5 font-space text-xs font-bold capitalize shadow-[1.5px_1.5px_0px_var(--color-brutal)] transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60
+                  {customer.isActive ? 'bg-[#86efac] ' : 'bg-[#ff8a8a] '}"
                 >
-                  {#if customer.isActive}
+                  {#if togglingCustomers[customer.id]}
+                      <span class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+                    {!customer.isActive ? 'Activating' : 'Deactivating'}
+                  {:else if customer.isActive }
                     <ToggleRight class="h-4 w-4" />
                     Active
                   {:else}
@@ -324,7 +332,7 @@
               </form>
             </TableCell>
             <TableCell class="text-right">
-              <div class="flex items-center justify-end gap-2">
+              <div class="flex items-center justify-end gap-1 sm:gap-2">
                 <Button
                   variant="ghost"
                   size="sm"

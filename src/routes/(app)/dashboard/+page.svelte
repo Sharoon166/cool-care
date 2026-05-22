@@ -5,7 +5,7 @@
   import RecentActivity from '$lib/components/dashboard/recent-activity.svelte';
   import RevenueChart from '$lib/components/dashboard/revenue-chart.svelte';
   import PaymentMethodBreakdown from '$lib/components/dashboard/payment-method-breakdown.svelte';
-  import PageHeader from '@//components/page-header.svelte';
+  import PageHeader from '$lib/components/page-header.svelte';
   
   // Skeleton components
   import RecentActivitySkeleton from '$lib/components/dashboard/skeletons/recent-activity-skeleton.svelte';
@@ -29,16 +29,16 @@
     <!-- KPI Grid (2x2) -->
     <div>
       {#await data.metrics}
-        <div class="grid grid-cols-2 gap-4">
-          <div class="h-[140px] animate-pulse rounded-[20px] brutal-border bg-muted"></div>
-          <div class="h-[140px] animate-pulse rounded-[20px] brutal-border bg-muted"></div>
-          <div class="h-[140px] animate-pulse rounded-[20px] brutal-border bg-muted"></div>
-          <div class="h-[140px] animate-pulse rounded-[20px] brutal-border bg-muted"></div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="h-35 brutal-shadow-md animate-pulse rounded-[20px] brutal-border bg-muted"></div>
+          <div class="h-35 brutal-shadow-md animate-pulse rounded-[20px] brutal-border bg-muted"></div>
+          <div class="h-35 brutal-shadow-md animate-pulse rounded-[20px] brutal-border bg-muted"></div>
+          <div class="h-35 brutal-shadow-md animate-pulse rounded-[20px] brutal-border bg-muted"></div>
         </div>
       {:then metrics}
         <KpiGrid {metrics} databaseError={data.databaseError} />
       {:catch error}
-        <div class="rounded-[24px] brutal-border bg-destructive/10 p-8 text-center">
+        <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
           <p class="text-sm text-destructive">Failed to load metrics</p>
           <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
         </div>
@@ -51,7 +51,7 @@
     {:then recentInvoices}
       <RecentActivity {recentInvoices} />
     {:catch error}
-      <div class="rounded-[24px] brutal-border bg-destructive/10 p-8 text-center">
+      <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
         <p class="text-sm text-destructive">Failed to load recent invoices</p>
         <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
       </div>
@@ -66,7 +66,7 @@
     {:then customersWithOutstanding}
       <CustomersWithOutstanding {customersWithOutstanding} />
     {:catch error}
-      <div class="rounded-[24px] brutal-border bg-destructive/10 p-8 text-center">
+      <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
         <p class="text-sm text-destructive">Failed to load customers</p>
         <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
       </div>
@@ -78,7 +78,7 @@
     {:then invoicesNeedingAttention}
       <InvoicesNeedingAttention {invoicesNeedingAttention} />
     {:catch error}
-      <div class="rounded-[24px] brutal-border bg-destructive/10 p-8 text-center">
+      <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
         <p class="text-sm text-destructive">Failed to load invoices</p>
         <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
       </div>
@@ -86,11 +86,11 @@
 
     <!-- Payment Method Breakdown -->
     {#await data.paymentMethodBreakdown}
-      <div class="h-[400px] animate-pulse rounded-[24px] brutal-border bg-muted"></div>
+      <div class="h-100 animate-pulse rounded-3xl brutal-border bg-muted"></div>
     {:then paymentMethodBreakdown}
       <PaymentMethodBreakdown {paymentMethodBreakdown} />
     {:catch error}
-      <div class="rounded-[24px] brutal-border bg-destructive/10 p-8 text-center">
+      <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
         <p class="text-sm text-destructive">Failed to load payment methods</p>
         <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
       </div>
@@ -103,7 +103,7 @@
   {:then chartData}
     <RevenueChart {chartData} databaseError={data.databaseError} />
   {:catch error}
-    <div class="rounded-[24px] brutal-border bg-destructive/10 p-8 text-center">
+    <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
       <p class="text-sm text-destructive">Failed to load revenue chart</p>
       <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
     </div>

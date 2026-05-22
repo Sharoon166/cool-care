@@ -7,9 +7,9 @@
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
   import * as Sheet from '$lib/components/ui/sheet';
 
-  import UserIcon from '@tabler/icons-svelte/icons/user';
   import EyeIcon from '@tabler/icons-svelte/icons/eye';
-  import { COMPANY_INFO } from '@//constants.js';
+  import { COMPANY_INFO, DATA_AVAILABILITY } from '$lib/constants.js';
+  import { Callout } from '$lib/components/ui/callout';
 
   let { data } = $props();
 
@@ -35,20 +35,20 @@
 <!-- Header -->
 <div class="border-b-4 border-brutal bg-card">
   <div class="container mx-auto px-4 py-6">
-    <div class="flex items-center gap-3">
-      <img src="/logo.png" alt="Company Logo" class="h-14 w-auto" />
+    <div class="flex items-center gap-2 sm:gap-3">
+      <img src="/logo.png" alt="Company Logo" class="h-10 sm:h-14 w-auto" />
 
-      <div>
-        <h1 class="text-2xl font-semibold">
+      <div class="min-w-0">
+        <h1 class="text-lg sm:text-2xl font-semibold truncate">
           {COMPANY_INFO.name}
         </h1>
-        <p class="text-sm text-muted-foreground">Customer Information Portal</p>
+        <p class="text-xs sm:text-sm text-muted-foreground">Customer Information Portal</p>
       </div>
 
-      <div class="ml-auto">
-        <Badge variant="secondary" class="gap-1">
+      <div class="ml-auto shrink-0">
+        <Badge variant="secondary" class="gap-1 whitespace-nowrap">
           <EyeIcon class="h-3 w-3" />
-          Read-only View
+          Read-only
         </Badge>
       </div>
     </div>
@@ -68,6 +68,13 @@
       payment history.
     </CardContent>
   </Card>
+
+  <Callout variant="info">
+    Invoices and quotations older than {DATA_AVAILABILITY.cutoffDate.toLocaleDateString('en-PK', {
+      year: 'numeric',
+      month: 'long'
+    })} are not available in the portal.
+  </Callout>
 
   <CustomerOverview customer={data.customer} metrics={data.metrics} />
 

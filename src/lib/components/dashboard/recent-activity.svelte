@@ -5,9 +5,7 @@
   import * as ScrollArea from '$lib/components/ui/scroll-area/index.js';
   import FileTextIcon from '@lucide/svelte/icons/file-text';
   import UserIcon from '@lucide/svelte/icons/user';
-  import DollarSignIcon from '@lucide/svelte/icons/dollar-sign';
   import { formatPKR } from '$lib/utils';
-  import Link from '@tabler/icons-svelte/icons/link';
   import ArrowUpRight from '@tabler/icons-svelte/icons/arrow-up-right';
 
   let { recentInvoices } = $props<{
@@ -29,48 +27,33 @@
       year: 'numeric'
     }).format(new Date(date));
   }
-
-  function getStatusColor(status: string): string {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'sent':
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'overdue':
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-    }
-  }
 </script>
 
 <Card.Root class="overflow-hidden brutal-card bg-card">
-  <Card.Header class="border-b border-border/40 pb-4">
+  <Card.Header class="border-b border-border/40">
     <Card.Title class="flex items-center gap-2 font-bold text-foreground">
       <FileTextIcon class="h-5 w-5" />
       Recent Invoices
     </Card.Title>
     <Card.Description class="text-muted-foreground">Latest invoice activity</Card.Description>
   </Card.Header>
-  <Card.Content class="pt-4">
+  <Card.Content>
     {#if recentInvoices.length === 0}
       <div class="py-8 text-center text-muted-foreground">
         <FileTextIcon class="mx-auto mb-2 h-12 w-12 opacity-50" />
         <p>No invoices found</p>
       </div>
     {:else}
-      <ScrollArea.Root class="h-[400px] pr-4">
-        <div class="space-y-4">
-          {#each recentInvoices as invoice}
+      <ScrollArea.Root class="h-100 md:pr-4">
+        <div class="space-y-4 p-2">
+          {#each recentInvoices as invoice (invoice.id)}
             <div
-              class="group flex items-center justify-between rounded-[16px] brutal bg-background p-3.5 transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:brutal-shadow-md"
+              class="group flex items-center justify-between flex-wrap rounded-2xl brutal bg-background p-3.5 transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:brutal-shadow-md"
             >
               <div class="flex items-center gap-3">
                 <div class="shrink-0">
                   <div
-                    class="flex h-10 w-10 items-center justify-center rounded-xl border border-brutal bg-[#c084fc]/20"
+                    class="hidden md:flex h-10 w-10 items-center justify-center rounded-xl border border-brutal bg-[#c084fc]/20"
                   >
                     <FileTextIcon class="h-5 w-5 " />
                   </div>
@@ -91,7 +74,7 @@
                       {invoice.status}
                     </span>
                   </div>
-                  <div class="flex items-center gap-2 text-xs font-bold text-muted-foreground/90">
+                  <div class="flex items-center flex-wrap gap-2 text-xs font-bold text-muted-foreground/90">
                     <UserIcon class="/70 h-3.5 w-3.5" />
                     <span class="truncate">{invoice.customerName}</span>
                     <span class="/30">•</span>
@@ -99,7 +82,7 @@
                   </div>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 max-sm:grow max-sm:justify-end">
                 <div class="text-right">
                   <div class="font-space text-sm font-extrabold">
                     {formatCurrency(invoice.total)}

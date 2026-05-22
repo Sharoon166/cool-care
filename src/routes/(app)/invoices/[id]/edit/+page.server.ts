@@ -26,6 +26,7 @@ export const load: PageServerLoad = async ({ params }) => {
       discountAmount: invoices.discountAmount,
       total: invoices.total,
       previous: invoices.previous,
+      paid: invoices.paid,
       totalPaid: invoices.totalPaid,
       balance: invoices.balance,
       status: invoices.status,

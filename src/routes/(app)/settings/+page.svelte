@@ -64,15 +64,15 @@
   <PageHeader title="Settings" description="Manage your account settings and preferences" />
 </div>
 
-<div class="flex gap-6">
-  <!-- Vertical Tabs - Simplified Neo-Brutalist -->
-  <div class="w-56 shrink-0">
-    <div class="sticky top-6 space-y-3">
+<div class="flex flex-col gap-6 md:flex-row">
+  <!-- Tabs - Horizontal scroll on mobile, vertical sidebar on desktop -->
+  <div class="w-full md:w-56 md:shrink-0">
+    <div class="flex gap-2 overflow-x-auto md:sticky md:top-6 md:flex-col md:space-y-3">
       {#each tabs as tab (tab.label)}
         {@const Icon = tab.icon}
         <button
           onclick={() => (activeTab = tab.id)}
-          class="w-full rounded-xl border-2 border-brutal p-4 text-left font-bold transition-all
+          class="shrink-0 rounded-xl border-2 border-brutal p-4 text-left font-bold transition-all
             {activeTab === tab.id
               ? 'bg-primary text-primary-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
               : 'bg-background hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}"
@@ -87,13 +87,13 @@
   </div>
 
   <!-- Content Area -->
-  <div class="flex-1 max-w-3xl">
+  <div class="min-w-0 flex-1 max-w-3xl">
     {#if activeTab === 'profile'}
       <!-- Profile Settings -->
-      <div class="rounded-[24px] brutal-card bg-card p-8">
+      <div class="rounded-3xl brutal-card bg-card p-4 sm:p-8">
         <div class="mb-6 border-b border-border/40 pb-4">
-          <h2 class="flex items-center gap-2 text-2xl font-bold">
-            <UserIcon class="h-6 w-6" />
+          <h2 class="flex items-center gap-2 text-xl sm:text-2xl font-bold">
+            <UserIcon class="h-5 w-5 sm:h-6 sm:w-6" />
             Profile Information
           </h2>
           <p class="mt-1 text-sm text-muted-foreground">
@@ -197,10 +197,10 @@
       </div>
     {:else if activeTab === 'security'}
       <!-- Security Settings -->
-      <div class="rounded-[24px] brutal-card bg-card p-8">
+      <div class="rounded-3xl brutal-card bg-card p-4 sm:p-8">
         <div class="mb-6 border-b border-border/40 pb-4">
-          <h2 class="flex items-center gap-2 text-2xl font-bold">
-            <LockIcon class="h-6 w-6" />
+          <h2 class="flex items-center gap-2 text-xl sm:text-2xl font-bold">
+            <LockIcon class="h-5 w-5 sm:h-6 sm:w-6" />
             Change Password
           </h2>
           <p class="mt-1 text-sm text-muted-foreground">

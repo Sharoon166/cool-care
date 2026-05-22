@@ -11,8 +11,7 @@
   import * as Select from '../ui/select/index.js';
   import { createId } from '@paralleldrive/cuid2';
   import { formatPKR } from '$lib/utils';
-  import { goto, invalidate } from '$app/navigation';
-  import { resolve } from '$app/paths';
+
   import { DatePicker } from '../ui/date-picker';
   import { CalendarDate, type DateValue } from '@internationalized/date';
   import { toast } from 'svelte-sonner';
@@ -145,11 +144,6 @@
     customers.find((c) => c.id === customerId) as CustomerOption | undefined
   );
 
-  $effect(() => {
-    if (type == 'quotation') goto(resolve('/invoices/new?type=quotation'));
-    else goto(resolve('/invoices/new'));
-    invalidate('/invoices/new');
-  });
 </script>
 
 <div class="mx-auto w-full max-w-6xl">
@@ -202,17 +196,6 @@
 
     <!-- Invoice Header -->
     <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-gray-900">
-          {mode === 'edit' ? 'Edit' : 'Create'}
-          {type === 'invoice' ? 'Invoice' : 'Quotation'}
-        </h2>
-        <div class="text-right">
-          <div class="text-sm text-muted-foreground">Invoice #</div>
-          <div class="text-lg font-semibold">{invoiceNum}</div>
-        </div>
-      </div>
-
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <!-- Type -->
         <div>
@@ -275,7 +258,7 @@
               {selectedCustomer ? selectedCustomer.name : 'Select Customer'}
             </Select.Trigger>
             <Select.Content>
-              {#each customers as customer}
+              {#each customers as customer (customer.id)}
                 <Select.Item value={customer.id}>
                   <div>
                     <div>{customer.name}</div>
@@ -306,7 +289,7 @@
       {/if}
 
       <div
-        class="overflow-x-auto rounded-[24px] border-2 border-brutal bg-card p-1 shadow-[4px_4px_0px_var(--color-brutal)]"
+        class="overflow-x-auto rounded-3xl border-2 border-brutal bg-card p-1 shadow-[4px_4px_0px_var(--color-brutal)]"
       >
         <table class="w-full border-collapse">
           <thead class="bg-muted">
@@ -349,7 +332,7 @@
                     />
                   </div>
                 </td>
-                <td class="space-y-1 border-r border-brutal px-4 py-2">
+                <td class="space-y-1 border-r border-brutal px-4 py-2 flex gap-2">
                   {#if item.isService}
                     <div class="text-sm text-muted-foreground">-</div>
                   {:else}
@@ -362,14 +345,15 @@
                       class="w-20 "
                     />
                   {/if}
-                  <label class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <label class="flex items-center gap-1 text-xs text-muted-foreground">
                     <input
                       type="checkbox"
                       bind:checked={item.isService}
                       onchange={() => calculateItemAmount(index)}
                       class="rounded"
+                      title="Service (No quantity)"
                     />
-                    Service <span class="max-md:sr-only">(no quantity)</span>
+                    Service
                   </label>
                 </td>
                 <td class="border-r border-brutal px-4 py-2">
@@ -403,7 +387,7 @@
             {/each}
           </tbody>
         </table>
-        <div class="mt-2 flex justify-center p-2">
+        <div class="max-md:hidden mt-2 flex justify-center p-2">
           <Button
             type="button"
             variant="default"
@@ -419,9 +403,23 @@
       </div>
     </div>
 
+    <div class="md:hidden flex justify-center p-2">
+      <Button
+        type="button"
+        variant="default"
+        size="sm"
+        class="w-full max-w-sm"
+        onclick={addItem}
+        disabled={items.at(-1)?.description === '' || loading}
+      >
+        <Plus class="h-4 w-4" />
+        Add Item
+      </Button>
+    </div>
+    
     <!-- Calculations -->
     <div
-      class="rounded-[24px] border-2 border-brutal bg-card p-6 shadow-[6px_6px_0px_rgba(17,17,17,1)]"
+      class="rounded-3xl border-2 border-brutal bg-card p-6 shadow-[6px_6px_0px_rgba(17,17,17,1)]"
     >
       <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <!-- Discount -->

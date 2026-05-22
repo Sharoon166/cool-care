@@ -2,9 +2,14 @@ import { json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { customers, invoices } from '$lib/server/db/schema';
 import { sql, or, ilike, and, desc } from 'drizzle-orm';
+import { auth } from '$lib/server/auth';
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, request }) => {
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) {
+    return json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const query = url.searchParams.get('q') || '';
   const type = url.searchParams.get('type') || 'all'; // 'all', 'customers', 'invoices'
 

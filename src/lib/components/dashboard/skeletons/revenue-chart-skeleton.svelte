@@ -23,33 +23,58 @@
       <div
         class="flex flex-col justify-between rounded-[18px] border-2 border-border/40 bg-black/40 p-6"
       >
-        <div class="space-y-4">
-          <div class="h-3 w-32 rounded bg-muted/20"></div>
-          <div class="h-12 w-40 rounded bg-muted/20"></div>
-          <div class="h-3 w-28 rounded bg-muted/20"></div>
+        <div class="space-y-2">
+          <div class="h-3 w-24 rounded bg-muted/20"></div>
+          <div class="h-12 w-36 rounded bg-muted/20"></div>
+          <div class="h-3 w-20 rounded bg-muted/20"></div>
         </div>
 
-        <div class="mt-8 grid grid-cols-2 gap-4 border-t border-border/40 pt-6">
-          <div class="space-y-2">
+        <div class="mt-8 space-y-4 border-t border-border/40 pt-6">
+          <div class="space-y-1">
             <div class="h-3 w-16 rounded bg-muted/20"></div>
-            <div class="h-4 w-24 rounded bg-muted/20"></div>
+            <div class="flex items-baseline gap-2">
+              <div class="h-4 w-20 rounded bg-muted/20"></div>
+              <div class="h-3 w-16 rounded bg-muted/20"></div>
+            </div>
           </div>
-          <div class="space-y-2">
+          <div class="space-y-1">
             <div class="h-3 w-16 rounded bg-muted/20"></div>
-            <div class="h-4 w-24 rounded bg-muted/20"></div>
+            <div class="flex items-baseline gap-2">
+              <div class="h-4 w-16 rounded bg-muted/20"></div>
+              <div class="h-3 w-12 rounded bg-muted/20"></div>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <div class="h-3 w-20 rounded bg-muted/20"></div>
+            <div class="flex items-baseline gap-2">
+              <div class="h-4 w-16 rounded bg-muted/20"></div>
+              <div class="h-3 w-16 rounded bg-muted/20"></div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Right Column: Chart Skeleton -->
       <div class="h-80 min-w-0 pr-4">
-        <div class="h-full w-full rounded-lg bg-muted/10 flex items-end justify-around p-8 gap-2">
-          {#each Array(12) as _, i (i)}
-            <div
-              class="w-full bg-[#A4F06C]/20 rounded-t animate-pulse"
-              style="height: {Math.random() * 60 + 20}%"
-            ></div>
-          {/each}
+        <div class="h-full w-full rounded-lg bg-black/20 p-4">
+          <svg class="h-full w-full" viewBox="0 0 300 200" preserveAspectRatio="none">
+            <path
+              d="M0,180 C20,180 30,90 50,90 C70,90 80,140 100,140 C120,140 130,60 150,60 C170,60 180,110 200,110 C220,110 230,130 250,130 C270,130 280,80 300,80"
+              fill="none"
+              stroke="#A4F06C"
+              stroke-width="2"
+              stroke-opacity="0.15"
+              class="animate-pulse"
+            />
+            <path
+              d="M0,180 C20,180 30,90 50,90 C70,90 80,140 100,140 C120,140 130,60 150,60 C170,60 180,110 200,110 C220,110 230,130 250,130 C270,130 280,80 300,80"
+              fill="none"
+              stroke="#A4F06C"
+              stroke-width="3"
+              stroke-opacity="0.4"
+              class="animate-pulse"
+            />
+          </svg>
         </div>
       </div>
     </div>

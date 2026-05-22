@@ -7,7 +7,7 @@
   import PhoneIcon from '@tabler/icons-svelte/icons/phone';
   import MapPinIcon from '@tabler/icons-svelte/icons/map-pin';
   import CalendarIcon from '@tabler/icons-svelte/icons/calendar';
-  import CurrencyDollarIcon from '@tabler/icons-svelte/icons/currency-dollar';
+  import CoinsIcon from '@tabler/icons-svelte/icons/coins';
   import ReceiptIcon from '@tabler/icons-svelte/icons/receipt';
   import FileTextIcon from '@tabler/icons-svelte/icons/file-text';
 
@@ -38,16 +38,14 @@
   <!-- Customer Information -->
   <Card.Root class="lg:col-span-1">
     <Card.Header>
-      <div class="flex items-center justify-between">
         <Card.Title class="flex items-center gap-2">
           <UserIcon class="h-5 w-5" />
           Customer Information
         </Card.Title>
-      </div>
     </Card.Header>
-    <Card.Content class="space-y-4">
+    <Card.Content class="space-y-4 max-sm:px-6">
       <div class="flex items-center justify-between">
-        <span class="font-medium">{customer.name}</span>
+        <span class="font-medium truncate">{customer.name}</span>
         <Badge variant={customer.isActive ? 'default' : 'secondary'}>
           {customer.isActive ? 'Active' : 'Inactive'}
         </Badge>
@@ -88,7 +86,7 @@
       <div
         class="grid size-11 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
       >
-        <CurrencyDollarIcon class="h-5 w-5" />
+        <CoinsIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
         <span class="/80 text-xs font-extrabold tracking-wider uppercase">Total Revenue</span>
@@ -139,7 +137,7 @@
       <div
         class="grid size-11 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
       >
-        <CurrencyDollarIcon class="h-5 w-5" />
+        <CoinsIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
         <span class="/80 text-xs font-extrabold tracking-wider uppercase">Total Paid</span>
@@ -156,7 +154,7 @@
       <div
         class="grid size-11 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
       >
-        <CurrencyDollarIcon class="h-5 w-5" />
+        <CoinsIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
         <span class="/80 text-xs font-extrabold tracking-wider uppercase">Outstanding</span>

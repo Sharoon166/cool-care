@@ -3,7 +3,6 @@
   import PageHeader from '$lib/components/page-header.svelte';
   import ArrowLeft from '@tabler/icons-svelte/icons/arrow-left';
   import Button from '$lib/components/ui/button/button.svelte';
-  import DatePicker from '@//components/ui/date-picker/date-picker.svelte';
 
   let { data } = $props();
 </script>

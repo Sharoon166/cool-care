@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import type { Customer } from '@//server/db/schema';
+  import type { Customer } from '$lib/server/db/schema';
   import Button from '../ui/button/button.svelte';
   import DeviceFloppy from '@tabler/icons-svelte/icons/device-floppy';
   import { Spinner } from '../ui/spinner';

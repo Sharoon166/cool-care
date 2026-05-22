@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import Button from '$lib/components/ui/button/button.svelte';
   import {
@@ -32,9 +31,12 @@
   import Search from '@tabler/icons-svelte/icons/search';
   import Trash from '@tabler/icons-svelte/icons/trash';
   import Edit from '@tabler/icons-svelte/icons/edit';
-  import Receipt from '@tabler/icons-svelte/icons/receipt';
-  import Users from '@tabler/icons-svelte/icons/users';
-  import Dollar from '@tabler/icons-svelte/icons/currency-dollar';
+import Receipt from '@tabler/icons-svelte/icons/receipt';
+
+import Coins from '@tabler/icons-svelte/icons/coins';
+import AlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
+import Clock from '@tabler/icons-svelte/icons/clock';
+import { toast } from 'svelte-sonner';
   import SearchOff from '@tabler/icons-svelte/icons/search-off';
   import PageHeader from '$lib/components/page-header.svelte';
   import { InputGroup, InputGroupAddon, InputGroupInput } from '$lib/components/ui/input-group';
@@ -42,11 +44,15 @@
   import { formatDate, formatPKR } from '$lib/utils';
   import Download from '@tabler/icons-svelte/icons/download';
   import Link from '@tabler/icons-svelte/icons/link';
+  import PaymentForm from '$lib/components/invoices/payment-form.svelte';
+  import CreditCard from '@tabler/icons-svelte/icons/credit-card';
 
   let { data, form } = $props();
 
   let showStatusDialog = $state(false);
+  let showPaymentDialog = $state(false);
   let selectedInvoice = $state<any>(null);
+  let paymentInvoice = $state<any>(null);
   let searchQuery = $state('');
   let filterType = $state('all');
   let filterStatus = $state('all');
@@ -78,6 +84,17 @@
     invalidateAll();
   }
 
+  function openPaymentDialog(invoice: any) {
+    paymentInvoice = invoice;
+    showPaymentDialog = true;
+  }
+
+  function closePaymentDialog() {
+    showPaymentDialog = false;
+    paymentInvoice = null;
+    invalidateAll();
+  }
+
   // Delete invoice function
   async function deleteInvoice(invoiceId: string) {
     const formData = new FormData();
@@ -90,10 +107,14 @@
       });
 
       if (response.ok) {
+        toast.success('Invoice deleted successfully');
         await invalidateAll();
+      } else {
+        toast.error('Failed to delete invoice');
       }
     } catch (error) {
       console.error('Failed to delete invoice:', error);
+      toast.error('An error occurred while deleting invoice');
     }
   }
 
@@ -121,10 +142,14 @@
       });
 
       if (response.ok) {
+        toast.success('Status updated successfully');
         closeStatusDialog();
+      } else {
+        toast.error('Failed to update status');
       }
     } catch (error) {
       console.error('Failed to update status:', error);
+      toast.error('An error occurred while updating status');
     }
   }
 
@@ -168,9 +193,9 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <!-- Total Invoices -->
+      <!-- Outstanding AR -->
       <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#86efac] p-5 brutal-shadow-md"
+        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#fbbf24] p-5 brutal-shadow-md"
       >
         <div
           class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
@@ -178,57 +203,66 @@
           <Receipt class="h-6 w-6" />
         </div>
         <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Total Invoices</span>
-          <div class="font-space text-3xl font-extrabold">{data.stats.total}</div>
+          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Outstanding AR</span>
+          <div class="font-space text-3xl font-extrabold">
+            {formatPKR.compact(data.stats.outstandingAR)}
+          </div>
+          <p class="text-xs font-semibold text-muted-foreground">
+            {data.stats.outstandingCount} unpaid invoices
+          </p>
         </div>
       </div>
 
-      <!-- Invoices -->
+      <!-- Overdue -->
+      <div
+        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#ff8a8a] p-5 brutal-shadow-md"
+      >
+        <div
+          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
+        >
+          <AlertTriangle class="h-6 w-6" />
+        </div>
+        <div class="space-y-0.5">
+          <span class="text-xs font-extrabold tracking-wider uppercase">Overdue</span>
+          <div class="font-space text-3xl font-extrabold">
+            {formatPKR.compact(data.stats.overdueAmount)}
+          </div>
+          <p class="text-xs font-semibold text-muted-foreground">
+            {data.stats.overdueCount} overdue invoices
+          </p>
+        </div>
+      </div>
+
+      <!-- Collected This Month -->
+      <div
+        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#86efac] p-5 brutal-shadow-md"
+      >
+        <div
+          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
+        >
+          <Coins class="h-6 w-6" />
+        </div>
+        <div class="space-y-0.5">
+          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Collected This Month</span>
+          <div class="font-space text-3xl font-extrabold">
+            {formatPKR.compact(data.stats.collectedThisMonth)}
+          </div>
+        </div>
+      </div>
+
+      <!-- Drafts Awaiting -->
       <div
         class="flex items-center gap-4 rounded-3xl brutal-border bg-[#c084fc] p-5 brutal-shadow-md"
       >
         <div
           class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
         >
-          <FileText class="h-6 w-6" />
+          <Clock class="h-6 w-6" />
         </div>
         <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Invoices</span>
-          <div class="font-space text-3xl font-extrabold">{data.stats.invoices}</div>
-        </div>
-      </div>
-
-      <!-- Quotations -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#fde047] p-5 brutal-shadow-md"
-      >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <Users class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Quotations</span>
-          <div class="font-space text-3xl font-extrabold">{data.stats.quotations}</div>
-        </div>
-      </div>
-
-      <!-- Total Value -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-brutal p-5 text-white brutal-shadow-md"
-      >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <Dollar class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="text-xs font-extrabold tracking-wider text-white/80 uppercase"
-            >Total Value</span
-          >
-          <div class="font-space text-3xl font-extrabold text-white">
-            {formatPKR.compact(data.stats.totalValue)}
-          </div>
+          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Drafts Awaiting</span>
+          <div class="font-space text-3xl font-extrabold">{data.stats.draftCount}</div>
+          <p class="text-xs font-semibold text-muted-foreground">awaiting action</p>
         </div>
       </div>
     </div>
@@ -273,16 +307,16 @@
   </div>
 
   <!-- Invoice Table -->
-  <div class="overflow-hidden brutal-card rounded-[24px] bg-card p-1">
+  <div class="overflow-hidden brutal-card rounded-3xl bg-card p-1">
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead class="w-[150px]">Invoice #</TableHead>
-          <TableHead>Type</TableHead>
+          <TableHead>Invoice #</TableHead>
+          <TableHead class="hidden lg:table-cell">Type</TableHead>
           <TableHead>Customer</TableHead>
-          <TableHead>Date</TableHead>
+          <TableHead class="hidden lg:table-cell">Date</TableHead>
           <TableHead>Total</TableHead>
-          <TableHead>Balance</TableHead>
+          <TableHead class="hidden md:table-cell">Balance</TableHead>
           <TableHead>Status</TableHead>
           <TableHead class="text-center">Actions</TableHead>
         </TableRow>
@@ -290,10 +324,10 @@
       <TableBody>
         {#each filteredInvoices as invoice (invoice.id)}
           <TableRow>
-            <TableCell class="font-space text-sm font-extrabold tracking-tight ">
+            <TableCell class="font-space text-sm font-extrabold tracking-tight whitespace-nowrap">
               {invoice.invoiceNumber}
             </TableCell>
-            <TableCell>
+            <TableCell class="hidden lg:table-cell">
               <Badge
                 variant={getTypeBadgeVariant(invoice.type)}
                 class="border border-brutal px-2.5 py-0.5 font-space text-xs font-bold capitalize shadow-[1.5px_1.5px_0px_var(--color-brutal)]"
@@ -301,21 +335,21 @@
                 {invoice.type}
               </Badge>
             </TableCell>
-            <TableCell>
-              <div class="text-sm font-extrabold">{invoice.customerName}</div>
+            <TableCell class="min-w-0 max-w-[160px]">
+              <div class="truncate text-sm font-extrabold">{invoice.customerName}</div>
               {#if invoice.customerCompany}
-                <div class="text-xs font-semibold text-muted-foreground">
+                <div class="truncate text-xs font-semibold text-muted-foreground">
                   {invoice.customerCompany}
                 </div>
               {/if}
             </TableCell>
-            <TableCell class="text-sm font-bold ">
+            <TableCell class="hidden lg:table-cell text-sm font-bold whitespace-nowrap">
               {formatDate.short(invoice.invoiceDate)}
             </TableCell>
-            <TableCell class="font-space text-sm font-extrabold ">
+            <TableCell class="font-space text-sm font-extrabold whitespace-nowrap">
               {formatPKR.compact(invoice.total)}
             </TableCell>
-            <TableCell class="font-space text-sm font-extrabold">
+            <TableCell class="hidden md:table-cell font-space text-sm font-extrabold whitespace-nowrap">
               <span class={parseFloat(invoice.balance) > 0 ? 'text-red-600' : 'text-green-600'}>
                 {parseFloat(invoice.balance) < 0 ? '-' : ''}{formatPKR.compact(
                   Math.abs(parseFloat(invoice.balance))
@@ -340,9 +374,12 @@
               </button>
             </TableCell>
             <TableCell class="text-right">
-              <div class="flex items-center justify-end gap-2">
-                <Button variant="ghost" href="/invoices/{invoice.id}" title="View Details">
-                  <Link class="h-4 w-4" /> View
+              <div class="flex items-center justify-end gap-1 sm:gap-2">
+                <Button variant="ghost" size="sm" href="/invoices/{invoice.id}" title="View Details" class="hidden sm:inline-flex">
+                  View
+                </Button>
+                <Button variant="ghost" size="icon" href="/invoices/{invoice.id}" title="View Details" class="sm:hidden">
+                  <Link class="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -350,6 +387,7 @@
                   href="/invoices/{invoice.id}/print"
                   target="_blank"
                   title="Print PDF"
+                  class="hidden sm:inline-flex"
                 >
                   <Download class="h-4 w-4" />
                 </Button>
@@ -361,6 +399,16 @@
                 >
                   <Edit class="h-4 w-4" />
                 </Button>
+                {#if invoice.type === 'invoice' && parseFloat(invoice.balance) > 0}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onclick={() => openPaymentDialog(invoice)}
+                    title="Add Payment"
+                  >
+                    <CreditCard class="h-4 w-4" />
+                  </Button>
+                {/if}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -430,7 +478,7 @@
     </Dialog.Header>
     <div class="space-y-4 py-4">
       <div class="grid grid-cols-2 gap-2">
-        {#each ['draft', 'sent', 'paid', 'cancelled'] as status}
+        {#each ['draft', 'sent', 'partial', 'paid', 'overdue', 'cancelled'] as status}
           <Button
             variant={selectedInvoice?.status === status ? 'default' : 'outline'}
             onclick={() => updateStatus(selectedInvoice.id, status)}
@@ -444,6 +492,25 @@
     <Dialog.Footer>
       <Button variant="outline" onclick={closeStatusDialog}>Cancel</Button>
     </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>
+
+<!-- Payment Dialog -->
+<Dialog.Root bind:open={showPaymentDialog}>
+  <Dialog.Content class="max-h-[95dvh] overflow-y-auto sm:max-w-[500px]">
+    <Dialog.Header>
+      <Dialog.Title>Add Payment</Dialog.Title>
+      <Dialog.Description>
+        Record a payment for invoice {paymentInvoice?.invoiceNumber}
+      </Dialog.Description>
+    </Dialog.Header>
+    {#if paymentInvoice}
+      <PaymentForm
+        invoiceId={paymentInvoice.id}
+        maxAmount={parseFloat(paymentInvoice.balance)}
+        onClose={closePaymentDialog}
+      />
+    {/if}
   </Dialog.Content>
 </Dialog.Root>
 

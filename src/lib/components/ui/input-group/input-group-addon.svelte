@@ -1,7 +1,7 @@
 <script lang="ts" module>
   import { tv, type VariantProps } from 'tailwind-variants';
   export const inputGroupAddonVariants = tv({
-    base: "text-foreground flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-bold select-none group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius)-5px)] [&>svg:not([class*='size-'])]:size-4 border-2 border-brutal rounded-lg brutal-shadow-xs mx-1",
+    base: "text-foreground flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-bold select-none group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius)-5px)] [&>svg:not([class*='size-'])]:size-4 rounded-lg mx-1",
     variants: {
       align: {
         'inline-start':

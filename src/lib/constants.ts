@@ -8,6 +8,11 @@ export const COMPANY_INFO = {
   gstNumber: 'GST123456789'
 } as const;
 
+export const DATA_AVAILABILITY = {
+  cutoffDate: new Date('2026-06-01'),
+  message: 'Invoices and quotations before this date are not available in the portal.'
+} as const;
+
 export const PAYMENT_INFO = {
   bank: {
     bankName: 'HBL Bank Limited',

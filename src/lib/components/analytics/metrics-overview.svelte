@@ -4,7 +4,7 @@
     import TrendingDownIcon from '@tabler/icons-svelte/icons/trending-down';
     import UsersIcon from '@tabler/icons-svelte/icons/users';
     import ReceiptIcon from '@tabler/icons-svelte/icons/receipt';
-    import CurrencyDollarIcon from '@tabler/icons-svelte/icons/currency-dollar';
+    import CoinsIcon from '@tabler/icons-svelte/icons/coins';
     import ChartLineIcon from '@tabler/icons-svelte/icons/chart-line';
 
     let { data } = $props();
@@ -26,7 +26,7 @@
                     value: formatCurrency(125000),
                     change: '+12.5%',
                     trend: 'up',
-                    icon: CurrencyDollarIcon,
+                    icon: CoinsIcon,
                     bgColor: 'bg-green-100',
                     textColor: 'text-green-500',
                     valueColor: 'text-green-600'
@@ -71,7 +71,7 @@
                 value: formatCurrency(data?.totalRevenue || 0),
                 change: data?.revenueChange || '+0%',
                 trend: data?.revenueChange?.startsWith('+') ? 'up' : 'down',
-                icon: CurrencyDollarIcon,
+                icon: CoinsIcon,
                 bgColor: 'bg-green-100',
                 textColor: 'text-green-500',
                 valueColor: 'text-green-600'

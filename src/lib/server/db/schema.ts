@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, boolean, timestamp, decimal, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, varchar, boolean, timestamp, decimal, integer, jsonb } from 'drizzle-orm/pg-core';
 import { createId } from '@paralleldrive/cuid2';
 
 export const customers = pgTable('customers', {
@@ -97,6 +97,12 @@ export type InvoiceItem = {
   isService?: boolean; // For items that don't require quantity (labor, service charges, etc.)
 };
 
+export const invoiceCounters = pgTable('invoice_counters', {
+  prefix: varchar('prefix', { length: 20 }).primaryKey(),
+  counter: integer('counter').notNull().default(0),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
 export const payments = pgTable('payments', {
   // Primary Key
   id: text('id')
@@ -111,11 +117,12 @@ export const payments = pgTable('payments', {
   // Payment Details
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   paymentDate: timestamp('payment_date').notNull().defaultNow(),
-  paymentMethod: varchar('payment_method', { length: 20 }).notNull(), // 'cash', 'online', 'custom'
+  paymentMethod: varchar('payment_method', { length: 20 }).notNull(), // 'cash', 'easypaisa', 'jazzcash', 'banktransfer', 'custom'
   customMethod: varchar('custom_method', { length: 100 }), // For custom payment methods
 
   // Additional Information
   notes: text('notes'),
+  isAdvance: boolean('is_advance').notNull().default(false),
 
   // System Fields
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -129,3 +136,4 @@ export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
+export type InvoiceCounter = typeof invoiceCounters.$inferSelect;

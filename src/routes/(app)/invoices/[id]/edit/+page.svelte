@@ -19,7 +19,7 @@
   </div>
 
   <!-- Form -->
-  <div class="rounded-lg border p-6">
+  <div>
     <InvoiceForm
       customers={data.customers}
       invoiceNumber={data.invoice.invoiceNumber}
@@ -33,7 +33,7 @@
         discountType: data.invoice.discountType || 'percentage',
         discountValue: parseFloat(data.invoice.discountValue || '0'),
         previous: parseFloat(data.invoice.previous || '0'),
-        paid: parseFloat(data.invoice.totalPaid || '0'),
+        paid: parseFloat(data.invoice.paid || '0'),
         notes: data.invoice.notes || '',
         items: data.invoice.items
       }}

@@ -69,43 +69,43 @@
   </PageHeader>
 </div>
 
-<div class="mx-auto w-full overflow-hidden brutal-card rounded-[24px] bg-card p-1">
+<div class="mx-auto w-full overflow-hidden brutal-card rounded-3xl bg-card p-1">
   {#if data.users && data.users.length > 0}
     <Table.Root>
       <Table.Header>
         <Table.Row>
           <Table.Head>Name</Table.Head>
-          <Table.Head>Email</Table.Head>
-          <Table.Head>Username</Table.Head>
-          <Table.Head>Created</Table.Head>
+          <Table.Head class="hidden md:table-cell">Email</Table.Head>
+          <Table.Head class="hidden lg:table-cell">Username</Table.Head>
+          <Table.Head class="hidden lg:table-cell">Created</Table.Head>
           <Table.Head class="text-right">Actions</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
         {#each data.users as user}
           <Table.Row>
-            <Table.Cell class="text-sm  font-extrabold">
+            <Table.Cell class="text-sm font-extrabold">
               <div class="flex items-center gap-2">
                 <div
-                  class="flex h-8 w-8 items-center justify-center rounded-lg border border-brutal bg-[#c084fc] shadow-[1.5px_1.5px_0px_var(--color-brutal)]"
+                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-brutal bg-[#c084fc] shadow-[1.5px_1.5px_0px_var(--color-brutal)]"
                 >
                   <UserIcon class="h-4 w-4" />
                 </div>
-                {user.name}
+                <span class="truncate">{user.name}</span>
               </div>
             </Table.Cell>
-            <Table.Cell class="text-sm font-semibold ">
+            <Table.Cell class="hidden md:table-cell text-sm font-semibold">
               <div class="flex items-center gap-2">
-                <MailIcon class="/60 h-4 w-4" />
-                {user.email}
+                <MailIcon class="/60 h-4 w-4 shrink-0" />
+                <span class="truncate">{user.email}</span>
               </div>
             </Table.Cell>
-            <Table.Cell class="flex items-center  text-sm font-bold">
+            <Table.Cell class="hidden lg:table-cell text-sm font-bold">
               @{user.username || '-'}
             </Table.Cell>
-            <Table.Cell class="text-sm font-semibold ">
+            <Table.Cell class="hidden lg:table-cell text-sm font-semibold whitespace-nowrap">
               <div class="flex items-center gap-2">
-                <CalendarIcon class="/60 h-4 w-4" />
+                <CalendarIcon class="/60 h-4 w-4 shrink-0" />
                 {formatDate(user.createdAt)}
               </div>
             </Table.Cell>
@@ -140,7 +140,7 @@
 
 <!-- Create User Dialog -->
 <Dialog.Root bind:open={showCreateDialog}>
-  <Dialog.Content class="max-w-md">
+  <Dialog.Content class="max-w-md w-[95vw] sm:w-full">
     <Dialog.Header>
       <Dialog.Title>Create New User</Dialog.Title>
       <Dialog.Description>Add a new user account to the system</Dialog.Description>
@@ -165,7 +165,7 @@
       }}
       class="space-y-4"
     >
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="space-y-2">
           <Label for="name">Full Name</Label>
           <Input
@@ -261,7 +261,7 @@
 
 <!-- Delete User Dialog -->
 <Dialog.Root bind:open={showDeleteDialog}>
-  <Dialog.Content class="max-w-md">
+  <Dialog.Content class="max-w-md w-[95vw] sm:w-full">
     <Dialog.Header>
       <Dialog.Title>Delete User</Dialog.Title>
       <Dialog.Description>

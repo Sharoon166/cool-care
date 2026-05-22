@@ -1,5 +1,5 @@
-@import 'tailwindcss';
 @import url('https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&display=swap');
+@import 'tailwindcss';
 
 @import 'tw-animate-css';
 
@@ -199,11 +199,11 @@
 }
 
 @utility brutal-card {
-  @apply rounded-[24px] brutal-border brutal-shadow-lg;
+  @apply rounded-3xl brutal-border brutal-shadow-lg;
 }
 
 @utility brutal-dialog {
-  @apply rounded-[24px] brutal-border brutal-shadow-xl;
+  @apply rounded-3xl brutal-border brutal-shadow-xl;
 }
 
 @utility brutal-btn {

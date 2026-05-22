@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Dollar from '@tabler/icons-svelte/icons/currency-dollar';
+  import Coins from '@tabler/icons-svelte/icons/coins';
   import AlertCircle from '@tabler/icons-svelte/icons/alert-circle';
   import TrendingUp from '@tabler/icons-svelte/icons/trending-up';
   import TrendingDown from '@tabler/icons-svelte/icons/trending-down';
@@ -35,12 +35,12 @@
 <div class="grid grid-cols-2 gap-4">
   <!-- Outstanding Amount (Critical!) -->
   <div
-    class="flex flex-col items-center justify-center rounded-[20px] brutal-border bg-[#FFE285] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--color-brutal)]"
+    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#FFE285] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
   >
     <div
       class="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-brutal bg-white/20"
     >
-      <Dollar size={16} />
+      <Coins size={16} />
     </div>
     <span class="text-[10px] font-semibold tracking-wider uppercase opacity-70">Outstanding</span>
     <span class="mt-1 font-space text-xl font-extrabold tracking-tight sm:text-2xl">
@@ -59,7 +59,7 @@
 
   <!-- Overdue Invoices (Urgent!) -->
   <div
-    class="flex flex-col items-center justify-center rounded-[20px] brutal-border bg-[#ff8a8a] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--color-brutal)]"
+    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#ff8a8a] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
   >
     <div
       class="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-brutal bg-white/20"
@@ -87,7 +87,7 @@
 
   <!-- Collected This Period -->
   <div
-    class="flex flex-col items-center justify-center rounded-[20px] brutal-border bg-[#86efac] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--color-brutal)]"
+    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#86efac] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
   >
     <div
       class="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-brutal bg-white/20"
@@ -118,7 +118,7 @@
 
   <!-- Quote Conversion Rate -->
   <div
-    class="flex flex-col items-center justify-center rounded-[20px] brutal-border bg-[#B4B0FF] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_var(--color-brutal)]"
+    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#B4B0FF] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
   >
     <div
       class="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-brutal bg-white/20"

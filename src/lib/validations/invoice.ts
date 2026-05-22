@@ -15,7 +15,7 @@ export const paymentSchema = z.object({
   invoiceId: z.string().min(1, 'Invoice ID is required'),
   amount: z.number().min(0.01, 'Payment amount must be greater than 0'),
   paymentDate: z.string().min(1, 'Payment date is required'),
-  paymentMethod: z.enum(['cash', 'online', 'custom']).default('cash'),
+  paymentMethod: z.enum(['cash', 'easypaisa', 'jazzcash', 'banktransfer', 'custom']).default('cash'),
   customMethod: z.string().optional(),
   notes: z.string().optional()
 });

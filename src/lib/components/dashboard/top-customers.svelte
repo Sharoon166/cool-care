@@ -2,7 +2,7 @@
   import * as Card from '$lib/components/ui/card/index.js';
   import * as Badge from '$lib/components/ui/badge/index.js';
   import UserIcon from '@lucide/svelte/icons/user';
-  import DollarSignIcon from '@lucide/svelte/icons/dollar-sign';
+  import CoinsIcon from '@tabler/icons-svelte/icons/coins';
   import FileTextIcon from '@lucide/svelte/icons/file-text';
   import { formatPKR } from '$lib/utils';
   import ArrowUpRight from '@tabler/icons-svelte/icons/arrow-up-right';

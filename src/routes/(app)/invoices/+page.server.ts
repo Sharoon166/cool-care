@@ -2,13 +2,17 @@ import { db } from '$lib/server/db';
 import { invoices, customers, payments } from '$lib/server/db/schema';
 import { invoiceSchema } from '$lib/validations/invoice';
 import { fail } from '@sveltejs/kit';
-import { eq, isNull, desc, and } from 'drizzle-orm';
+import { eq, isNull, desc, and, sql, gte, lt } from 'drizzle-orm';
 import { addPayment, deletePayment, calculateInvoiceStatus } from '$lib/server/payment-actions';
 import { createId } from '@paralleldrive/cuid2';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-  // Get all active invoices (not soft-deleted) with customer info and payment summary
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+  // Get all active invoices (not soft-deleted) with customer info
   const allInvoices = await db
     .select({
       id: invoices.id,
@@ -29,17 +33,37 @@ export const load: PageServerLoad = async () => {
     .where(isNull(invoices.deletedAt))
     .orderBy(desc(invoices.createdAt));
 
-  // Calculate stats on the backend
+  // Collected this month from payments
+  const [collectedResult] = await db
+    .select({
+      total: sql`COALESCE(SUM(${payments.amount}), 0)`
+    })
+    .from(payments)
+    .innerJoin(invoices, eq(payments.invoiceId, invoices.id))
+    .where(
+      and(
+        gte(payments.paymentDate, monthStart),
+        lt(payments.paymentDate, nextMonthStart),
+        isNull(invoices.deletedAt)
+      )
+    );
+
+  const collectedThisMonth = Number(collectedResult?.total || 0);
+
+  // Actionable KPIs
+  const activeInvoices = allInvoices.filter((i) => i.type === 'invoice');
+  const outstandingInvoices = activeInvoices.filter(
+    (i) => ['sent', 'partial', 'overdue'].includes(i.status || '') && parseFloat(i.balance) > 0
+  );
+  const overdueInvoices = activeInvoices.filter((i) => i.status === 'overdue');
+
   const stats = {
-    total: allInvoices.length,
-    invoices: allInvoices.filter((i) => i.type === 'invoice').length,
-    quotations: allInvoices.filter((i) => i.type === 'quotation').length,
-    totalValue: allInvoices
-      .filter((i) => i.type === 'invoice')
-      .reduce((sum, i) => sum + parseFloat(i.total), 0),
-    paid: allInvoices.filter((i) => i.status === 'paid').length,
-    pending: allInvoices.filter((i) => i.status === 'sent' || i.status === 'draft').length,
-    overdue: allInvoices.filter((i) => i.status === 'overdue').length
+    outstandingAR: outstandingInvoices.reduce((sum, i) => sum + parseFloat(i.balance), 0),
+    outstandingCount: outstandingInvoices.length,
+    overdueAmount: overdueInvoices.reduce((sum, i) => sum + parseFloat(i.balance), 0),
+    overdueCount: overdueInvoices.length,
+    collectedThisMonth,
+    draftCount: allInvoices.filter((i) => i.status === 'draft').length
   };
 
   return {
@@ -135,15 +159,15 @@ export const actions: Actions = {
         })
         .returning();
 
-      // If there's an advance payment, create a payment record
       if (advancePayment > 0) {
         await db.insert(payments).values({
           id: createId(),
           invoiceId: newInvoice.id,
           amount: advancePayment.toString(),
-          paymentDate: new Date(result.data.invoiceDate), // Use invoice date for advance payment
-          paymentMethod: 'cash', // Default to cash for advance payments
-          notes: 'Advance payment received at invoice creation'
+          paymentDate: new Date(result.data.invoiceDate),
+          paymentMethod: 'cash',
+          notes: 'Advance payment received at invoice creation',
+          isAdvance: true
         });
       }
 
@@ -263,21 +287,18 @@ export const actions: Actions = {
         .where(eq(invoices.id, id))
         .returning();
 
-      // Handle advance payment changes
       if (newAdvancePayment !== currentAdvancePayment) {
-        // First, delete any existing advance payment record
         if (currentAdvancePayment > 0) {
           await db
             .delete(payments)
             .where(
               and(
                 eq(payments.invoiceId, id),
-                eq(payments.notes, 'Advance payment received at invoice creation')
+                eq(payments.isAdvance, true)
               )
             );
         }
 
-        // Create new advance payment record if there's an advance payment
         if (newAdvancePayment > 0) {
           await db.insert(payments).values({
             id: createId(),
@@ -285,7 +306,8 @@ export const actions: Actions = {
             amount: newAdvancePayment.toString(),
             paymentDate: new Date(result.data.invoiceDate),
             paymentMethod: 'cash',
-            notes: 'Advance payment received at invoice creation'
+            notes: 'Advance payment received at invoice creation',
+            isAdvance: true
           });
         }
       }

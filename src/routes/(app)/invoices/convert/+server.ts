@@ -4,6 +4,7 @@ import { fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 import { calculateInvoiceStatus } from '$lib/server/payment-actions';
+import { getNextInvoiceNumber } from '$lib/server/invoice-numbers';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -11,7 +12,6 @@ export const POST: RequestHandler = async ({ request }) => {
   const quotationId = formData.get('quotationId') as string;
 
   try {
-    // Get the quotation details
     const [quotation] = await db.select().from(invoices).where(eq(invoices.id, quotationId));
 
     if (!quotation) {
@@ -38,14 +38,7 @@ export const POST: RequestHandler = async ({ request }) => {
       });
     }
 
-    // Generate new invoice number with INV- prefix
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const random = Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, '0');
-    const invoiceNumber = `INV-${year}${month}-${random}`;
+    const invoiceNumber = await getNextInvoiceNumber('invoice');
 
     // Calculate status based on advance payment
     const totalAmount = parseFloat(quotation.total || '0');
@@ -95,15 +88,15 @@ export const POST: RequestHandler = async ({ request }) => {
       })
       .where(eq(invoices.id, quotationId));
 
-    // If there was any advance payment, create a payment record for the new invoice
     if (parseFloat(quotation.paid || '0') > 0) {
       await db.insert(payments).values({
         id: createId(),
         invoiceId: newInvoice.id,
         amount: quotation.paid,
         paymentDate: new Date(),
-        paymentMethod: 'cash', // Default to cash for advance payments
-        notes: 'Advance payment from quotation conversion'
+        paymentMethod: 'cash',
+        notes: 'Advance payment from quotation conversion',
+        isAdvance: true
       });
     }
 

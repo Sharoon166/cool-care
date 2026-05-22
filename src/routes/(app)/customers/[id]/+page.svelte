@@ -45,7 +45,7 @@
   });
 </script>
 
-<div class="mb-10 pl-6">
+<div class="mb-8">
   <PageHeader
     title={customerName}
     description="Complete customer information and business analytics"
@@ -60,14 +60,14 @@
   </PageHeader>
 </div>
 
-<div class="space-y-6 px-4 lg:px-6">
+<div class="space-y-6">
   <!-- Customer Overview with Streaming -->
   {#await Promise.all([data.customer, data.metrics])}
     <CustomerOverviewSkeleton />
   {:then [customer, metrics]}
     <CustomerOverview {customer} {metrics} />
   {:catch error}
-    <div class="rounded-[24px] brutal-border bg-destructive/10 p-8 text-center">
+    <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
       <p class="text-sm text-destructive">Failed to load customer overview</p>
       <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
     </div>
@@ -84,7 +84,7 @@
       onInvoiceSelect={handleInvoiceSelect}
     />
   {:catch error}
-    <div class="rounded-[24px] brutal-border bg-destructive/10 p-8 text-center">
+    <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
       <p class="text-sm text-destructive">Failed to load customer history</p>
       <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
     </div>

@@ -38,7 +38,7 @@ function getTimeRangeDate(timeRange: TimeRange, customFrom?: string, customTo?: 
       }
       return getTimeRangeDate('30d');
     default:
-      return getTimeRangeDate('6m');
+      return getTimeRangeDate('7d');
   }
 }
 
@@ -555,7 +555,7 @@ export async function load({ url }) {
       customersWithOutstanding: Promise.resolve([]),
       recentInvoices: Promise.resolve([]),
       paymentMethodBreakdown: Promise.resolve([]),
-      timeRange: (url.searchParams.get('timeRange') as TimeRange) || '6m',
+      timeRange: (url.searchParams.get('timeRange') as TimeRange) || '7d',
       period: url.searchParams.get('period') || 'last-3-months'
     };
   }
@@ -569,7 +569,7 @@ export async function load({ url }) {
     customersWithOutstanding: getCustomersWithOutstanding(),
     recentInvoices: getRecentInvoices(),
     paymentMethodBreakdown: getPaymentMethodBreakdown(url),
-    timeRange: (url.searchParams.get('timeRange') as TimeRange) || '6m',
+    timeRange: (url.searchParams.get('timeRange') as TimeRange) || '7d',
     period: url.searchParams.get('period') || 'last-3-months'
   };
 }

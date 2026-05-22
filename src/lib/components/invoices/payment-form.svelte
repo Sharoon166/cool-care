@@ -137,7 +137,9 @@
         </Select.Trigger>
         <Select.Content>
           <Select.Item value="cash">Cash</Select.Item>
-          <Select.Item value="online">Online</Select.Item>
+          <Select.Item value="easypaisa">EasyPaisa</Select.Item>
+          <Select.Item value="jazzcash">JazzCash</Select.Item>
+          <Select.Item value="banktransfer">Bank Transfer</Select.Item>
           <Select.Item value="custom">Custom</Select.Item>
         </Select.Content>
       </Select.Root>

@@ -75,7 +75,7 @@
   });
 
   // Time range state
-  let timeRange = $state<TimeRange>('6m');
+  let timeRange = $state<TimeRange>('7d');
   let customDateRange = $state<{
     from: DateValue | undefined;
     to: DateValue | undefined;
@@ -189,7 +189,8 @@
 
   // Update URL when time range changes.
   // For 7d/30d/6m toggles, update URL locally and skip server navigation
-  // so the chart updates instantly from cached data.
+  // so the chart updates instantly from cached data — unless coming from
+  // custom range where the cache was invalidated and server data is scoped.
   function updateTimeRange(newTimeRange: TimeRange) {
     const url = new URL($page.url);
     url.searchParams.set('timeRange', newTimeRange);
@@ -208,9 +209,13 @@
           return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
         })()
       };
-      history.replaceState(history.state, '', url.toString());
-      // Update timeRange AFTER resetting customDateRange
-      timeRange = newTimeRange;
+      if (timeRange === 'custom') {
+        invalidateCache();
+        goto(url.toString(), { replaceState: true, noScroll: true, keepFocus: true });
+      } else {
+        history.replaceState(history.state, '', url.toString());
+        timeRange = newTimeRange;
+      }
     } else {
       timeRange = newTimeRange;
       updateCustomRangeInUrl();
@@ -320,7 +325,7 @@
   <Card.Header class="border-b border-border/40 pb-4">
     <Card.Title class="text-xl font-bold text-white">Revenue</Card.Title>
     <Card.Description class="text-sm text-muted-foreground">
-      Income and expenses on (Includes unpaid invoices and bills)
+      Revenue from payments received across the selected time period
     </Card.Description>
     <Card.Action class="flex flex-wrap items-center gap-2 pt-2">
       <!-- Toggle Group -->

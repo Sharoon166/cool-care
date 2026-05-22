@@ -94,7 +94,7 @@
       >
         {inflowToday}
       </p>
-      <p class="text-[10px] font-bold tracking-[0.1em] text-white/40 uppercase">Inflow Today</p>
+      <p class="text-[10px] font-bold tracking-widest text-white/40 uppercase">Inflow Today</p>
     </div>
 
     {#if pathD}
@@ -142,15 +142,15 @@
   </div>
 
   <!-- Stat chips -->
-  <div class="mt-5 grid grid-cols-2 gap-3 border-t-[2px] border-white/10 pt-4">
+  <div class="mt-5 grid grid-cols-2 gap-3 border-t-2 border-white/10 pt-4">
     <div class="border-2 border-white/10 bg-white/5 p-3">
-      <p class="text-[10px] font-bold tracking-[0.1em] text-white/40 uppercase">Total Revenue</p>
+      <p class="text-[10px] font-bold tracking-widest text-white/40 uppercase">Total Revenue</p>
       <p class="text-base font-bold text-white" style="font-family: 'Poppins', sans-serif;">
         ${totalRevenue.toLocaleString()}
       </p>
     </div>
     <div class="border-2 border-white/10 bg-white/5 p-3">
-      <p class="text-[10px] font-bold tracking-[0.1em] text-white/40 uppercase">Avg / Month</p>
+      <p class="text-[10px] font-bold tracking-widest text-white/40 uppercase">Avg / Month</p>
       <div class="flex items-center gap-1.5">
         <p class="text-base font-bold text-white" style="font-family: 'Poppins', sans-serif;">
           ${avgRevenue.toLocaleString()}

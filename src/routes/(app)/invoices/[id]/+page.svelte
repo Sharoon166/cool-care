@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import Button from '$lib/components/ui/button/button.svelte';
   import { Badge } from '$lib/components/ui/badge/index.js';
@@ -21,6 +20,7 @@
   import { formatPKR } from '$lib/utils';
   import PaymentForm from '$lib/components/invoices/payment-form.svelte';
   import { ConfirmDeleteDialog, confirmDelete } from '$lib/components/ui/confirm-delete-dialog';
+  import { Spinner } from '$lib/components/ui/spinner';
   import { formatDate } from '$lib/utils';
   import { toast } from 'svelte-sonner';
 
@@ -50,8 +50,11 @@
     invalidateAll();
   }
 
+  let deletingPaymentId = $state<string | null>(null);
+
   // Delete payment function
   async function deletePayment(paymentId: string) {
+    deletingPaymentId = paymentId;
     const formData = new FormData();
     formData.append('paymentId', paymentId);
 
@@ -70,6 +73,8 @@
     } catch (error) {
       console.error('Failed to delete payment:', error);
       toast.error('An error occurred while deleting payment');
+    } finally {
+      deletingPaymentId = null;
     }
   }
 
@@ -129,32 +134,31 @@
           window.location.href = `/invoices/${result.invoiceId}`;
         } else {
           console.error('Unexpected response format:', result);
-          // Try to redirect to invoices list as fallback
+          toast.success('Conversion completed! Redirecting to invoices list.');
           window.location.href = '/invoices';
-          alert('Conversion completed! Redirecting to invoices list.');
         }
       } else {
         const errorText = await response.text();
         console.error('Failed to convert quotation:', response.status, errorText);
         try {
           const errorData = JSON.parse(errorText);
-          alert(`Failed to convert quotation: ${errorData.error || 'Unknown error'}`);
+          toast.error(`Failed to convert quotation: ${errorData.error || 'Unknown error'}`);
         } catch {
-          alert('Failed to convert quotation. Please try again.');
+          toast.error('Failed to convert quotation. Please try again.');
         }
       }
     } catch (error) {
       console.error('Error converting quotation:', error);
-      alert('Error converting quotation. Please try again.');
+      toast.error('Error converting quotation. Please try again.');
     }
   }
 </script>
 
-<div class="container mx-auto max-w-6xl px-4 py-8">
+<div class="container mx-auto max-w-6xl py-8">
   <!-- Header -->
   <div class="mb-8">
     <PageHeader title="Invoice Details" description={`Invoice ${invoice.invoiceNumber}`}>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <Button variant="outline" href="/invoices">
           <ArrowLeft class="h-5 w-5" />
           Back to Invoices
@@ -175,11 +179,11 @@
     <!-- Invoice Details -->
     <div class="space-y-6 lg:col-span-2">
       <!-- Invoice Header -->
-      <div class="brutal-card rounded-[24px] bg-card p-6">
-        <div class="mb-4 flex items-center justify-between">
+      <div class="brutal-card rounded-3xl bg-card p-6">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-gray-900">{invoice.invoiceNumber}</h2>
-            <p class="text-muted-foreground">
+            <h2 class="text-xl font-bold sm:text-2xl">{invoice.invoiceNumber}</h2>
+            <p class="text-sm text-muted-foreground">
               {new Date(invoice.invoiceDate).toLocaleDateString('en-PK', {
                 year: 'numeric',
                 month: 'long',
@@ -187,8 +191,8 @@
               })}
             </p>
           </div>
-          <div class="text-right">
-            <Badge variant={getStatusBadgeVariant(invoice.status || '')} class="mb-2 capitalize">
+          <div class="flex items-center gap-2 sm:text-right">
+            <Badge variant={getStatusBadgeVariant(invoice.status || '')} class="capitalize">
               {invoice.status}
             </Badge>
             <p class="text-sm text-muted-foreground capitalize">{invoice.type}</p>
@@ -197,9 +201,9 @@
 
         <!-- Customer Info -->
         <div class="border-t pt-4">
-          <h3 class="mb-2 font-semibold text-gray-900">Customer Information</h3>
+          <h3 class="mb-2 font-semibold">Customer Information</h3>
           <div class="text-sm text-muted-foreground">
-            <p class="font-medium text-gray-900">{invoice.customerName}</p>
+            <p class="font-medium">{invoice.customerName}</p>
             {#if invoice.customerCompany}
               <p>{invoice.customerCompany}</p>
             {/if}
@@ -214,43 +218,33 @@
       </div>
 
       <!-- Invoice Items -->
-      <div class="brutal-card rounded-[24px] bg-card p-6">
-        <h3 class="mb-4 font-semibold text-gray-900">Items</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead class="border-b-2 border-brutal">
-              <tr class="text-left text-sm font-bold text-gray-900">
-                <th class="border-r-2 border-brutal pb-3 font-bold last:border-r-0">Description</th>
-                <th class="border-r-2 border-brutal pb-3 text-center font-bold last:border-r-0"
-                  >Qty</th
-                >
-                <th class="border-r-2 border-brutal pr-2 pb-3 text-right font-bold last:border-r-0"
-                  >Rate</th
-                >
-                <th class="pr-2 pb-3 text-right font-bold">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each invoice.items as item}
-                <tr class="border-b border-brutal last:border-b-0">
-                  <td class="border-r border-brutal py-3 last:border-r-0">
-                    <div>{item.description}</div>
-                    {#if item.notes}
-                      <div class="text-sm text-gray-500">{item.notes}</div>
-                    {/if}
-                  </td>
-                  <td class="border-r border-brutal py-3 text-center last:border-r-0"
-                    >{item.quantity}</td
-                  >
-                  <td class="border-r border-brutal py-3 pr-2 text-right last:border-r-0"
-                    >{formatPKR.compact(item.rate)}</td
-                  >
-                  <td class="py-3 pr-2 text-right font-medium">{formatPKR.compact(item.amount)}</td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
+      <div class="brutal-card rounded-3xl bg-card p-6">
+        <h3 class="mb-4 font-semibold">Items</h3>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Description</TableHead>
+              <TableHead class="text-center">Qty</TableHead>
+              <TableHead class="text-right">Rate</TableHead>
+              <TableHead class="text-right">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {#each invoice.items as item (item.id)}
+              <TableRow>
+                <TableCell>
+                  <div>{item.description}</div>
+                  {#if item.notes}
+                    <div class="text-sm text-muted-foreground/70">{item.notes}</div>
+                  {/if}
+                </TableCell>
+                <TableCell class="text-center">{item.quantity}</TableCell>
+                <TableCell class="text-right font-space font-bold">{formatPKR.compact(item.rate)}</TableCell>
+                <TableCell class="text-right font-space font-bold">{formatPKR.compact(item.amount)}</TableCell>
+              </TableRow>
+            {/each}
+          </TableBody>
+        </Table>
       </div>
     </div>
 
@@ -258,8 +252,8 @@
     <div class="space-y-6">
       {#if invoice.type === 'quotation'}
         <!-- Quotation Summary -->
-        <div class="brutal-card rounded-[24px] bg-card p-6">
-          <h3 class="mb-4 font-semibold text-gray-900">Quotation Summary</h3>
+        <div class="brutal-card rounded-3xl bg-card p-6">
+          <h3 class="mb-4 font-semibold">Quotation Summary</h3>
           <div class="space-y-3">
             <div class="flex justify-between">
               <span class="text-muted-foreground">Subtotal:</span>
@@ -314,8 +308,8 @@
         </div>
       {:else}
         <!-- Invoice Payment Summary -->
-        <div class="brutal-card rounded-[24px] bg-card p-6">
-          <h3 class="mb-4 font-semibold text-gray-900">Payment Summary</h3>
+        <div class="brutal-card rounded-3xl bg-card p-6">
+          <h3 class="mb-4 font-semibold">Payment Summary</h3>
           <div class="space-y-3">
             <div class="flex justify-between">
               <span class="text-muted-foreground">Subtotal:</span>
@@ -360,9 +354,9 @@
         </div>
 
         <!-- Payment History -->
-        <div class="brutal-card rounded-[24px] bg-card p-6">
+        <div class="brutal-card rounded-3xl bg-card p-6">
           <div class="mb-4 flex items-center justify-between">
-            <h3 class="font-semibold text-gray-900">Payment History</h3>
+            <h3 class="font-semibold">Payment History</h3>
             <CreditCard class="h-5 w-5 text-gray-400" />
           </div>
 
@@ -371,8 +365,8 @@
           {:else}
             <div class="space-y-3 divide-y-2">
               {#each payments as payment (payment.id)}
-                <div class="flex items-center justify-between bg-gray-50 p-3">
-                  <div class="flex-1">
+                <div class="flex items-center justify-between gap-3 bg-gray-50 p-3">
+                  <div class="min-w-0 flex-1">
                     <div class="font-medium">
                       {formatPKR.compact(parseFloat(payment.amount))}
                     </div>
@@ -380,16 +374,21 @@
                       {formatDate.short(payment.paymentDate)} • {getPaymentMethodDisplay(payment)}
                     </div>
                     {#if payment.notes}
-                      <div class="text-sm text-gray-500">{payment.notes}</div>
+                      <div class="truncate text-sm text-gray-500">{payment.notes}</div>
                     {/if}
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onclick={() => handleDeletePayment(payment)}
-                    class="text-red-600 hover:text-red-800"
+                    disabled={deletingPaymentId === payment.id}
+                    class="shrink-0 text-red-600 hover:text-red-800 disabled:opacity-50"
                   >
-                    <Trash class="h-4 w-4" />
+                    {#if deletingPaymentId === payment.id}
+                      <Spinner class="h-4 w-4" />
+                    {:else}
+                      <Trash class="h-4 w-4" />
+                    {/if}
                   </Button>
                 </div>
               {/each}
