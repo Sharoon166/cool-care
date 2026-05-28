@@ -9,18 +9,16 @@
   <!-- Hero Section -->
   <div class="min-h-[70dvh] space-y-8 py-12 text-center">
     <div class="flex items-center justify-center gap-6">
-      <img src="/logo.png" alt="logo" class="size-24 rounded-xl brutal-border brutal-shadow-md" />
+      <img src="/logo.png" alt="logo" class="size-24 rounded-xl brutal-border brutal-shadow-md object-contain" />
       <div class="text-left">
         <h1 class="text-4xl font-bold tracking-tight sm:text-7xl">Cool Care</h1>
-        <p class="font-semibold text-muted-foreground">AC & Refrigeration</p>
+        <p class="font-semibold text-muted-foreground capitalize">Electrical & AC repair servie</p>
       </div>
     </div>
 
     <div class="mx-auto max-w-2xl">
       <p class="leading-relaxed text-pretty text-muted-foreground sm:text-lg">
-        A personal invoicing and customer management system built specifically for my dad's air
-        conditioning and refrigeration business. I wanted to create something that would save him
-        time on administrative tasks while keeping everything organized.
+        A personal invoicing and customer management system built specifically for my dad's air conditioning and refrigeration business. I wanted to create something that would save him time on administrative tasks while keeping everything organized.
       </p>
     </div>
 

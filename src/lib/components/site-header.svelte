@@ -97,7 +97,7 @@
 
       <!-- Desktop Nav Items -->
       <nav class="hidden items-center gap-6 md:flex">
-        {#each navItems as item}
+        {#each navItems as item (item.path)}
           {@const isActive = page.url.pathname.startsWith(item.path)}
           <a
             href={item.path}
