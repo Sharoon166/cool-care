@@ -122,11 +122,9 @@ import { toast } from 'svelte-sonner';
   async function handleDelete(invoice: any) {
     const confirmed = await confirmDelete({
       title: 'Delete Invoice',
-      description: `Are you sure you want to delete invoice ${invoice.invoiceNumber}? This action cannot be undone.`,
-      onConfirm: async () => {
-        await deleteInvoice(invoice.id);
-      }
+      description: `Are you sure you want to delete invoice ${invoice.invoiceNumber}? This action cannot be undone.`
     });
+    if (confirmed) await deleteInvoice(invoice.id);
   }
 
   // Update status function

@@ -172,7 +172,7 @@ export const actions: Actions = {
       }
 
       return {
-        success: true,
+        success: true as const,
         invoice: newInvoice
       };
     } catch (error) {
@@ -313,7 +313,7 @@ export const actions: Actions = {
       }
 
       return {
-        success: true,
+        success: true as const,
         invoice: updatedInvoice
       };
     } catch (error) {
@@ -333,7 +333,7 @@ export const actions: Actions = {
       // Soft delete
       await db.update(invoices).set({ deletedAt: new Date() }).where(eq(invoices.id, id));
 
-      return { success: true };
+      return { success: true as const };
     } catch (error) {
       console.error('Database error:', error);
       return fail(500, {
@@ -356,7 +356,7 @@ export const actions: Actions = {
         })
         .where(eq(invoices.id, id));
 
-      return { success: true };
+      return { success: true as const };
     } catch {
       return fail(500, {
         error: 'Failed to update status'

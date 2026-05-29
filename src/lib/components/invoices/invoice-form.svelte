@@ -1,28 +1,21 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import type { InvoiceItem } from '$lib/server/db/schema';
-  import Button from '../ui/button/button.svelte';
+  import { goto } from '$app/navigation';
+  import type { InvoiceItem } from '$lib/types';
+  import type { CustomerOption, ActionErrors } from '$lib/types';
+  import Button from '$lib/components/ui/button/button.svelte';
   import DeviceFloppy from '@tabler/icons-svelte/icons/device-floppy';
-  import { Spinner } from '../ui/spinner';
-  import { Input } from '../ui/input';
+  import { Spinner } from '$lib/components/ui/spinner';
+  import { Input } from '$lib/components/ui/input';
   import Plus from '@tabler/icons-svelte/icons/plus';
   import Trash from '@tabler/icons-svelte/icons/trash';
-  import { InputGroup, InputGroupTextarea } from '../ui/input-group';
-  import * as Select from '../ui/select/index.js';
+  import { InputGroup, InputGroupTextarea } from '$lib/components/ui/input-group';
+  import * as Select from '$lib/components/ui/select/index.js';
   import { createId } from '@paralleldrive/cuid2';
   import { formatPKR } from '$lib/utils';
-
-  import { DatePicker } from '../ui/date-picker';
+  import { DatePicker } from '$lib/components/ui/date-picker';
   import { CalendarDate, type DateValue } from '@internationalized/date';
   import { toast } from 'svelte-sonner';
-
-  type CustomerOption = {
-    id: string;
-    name: string;
-    companyName: string | null;
-    phone: string;
-    email: string | null;
-  };
 
   type Props = {
     customers: CustomerOption[];
@@ -41,7 +34,7 @@
       previous: number;
       paid: number;
       notes: string;
-      items: any[];
+      items: InvoiceItem[];
     };
   };
 
@@ -55,7 +48,7 @@
   }: Props = $props();
 
   let loading = $state(false);
-  let errors = $state<any>({});
+  let errors = $state<ActionErrors>({} as ActionErrors);
 
   // Form data
   let type = $state(initialData?.type || defaultType);
@@ -139,9 +132,8 @@
   let total = $derived(subtotal - discountAmount);
   let balance = $derived(total + previous - paid);
 
-  // Get selected customer
   let selectedCustomer = $derived(
-    customers.find((c) => c.id === customerId) as CustomerOption | undefined
+    customers.find((c) => c.id === customerId)
   );
 
 </script>
@@ -160,14 +152,13 @@
               ? `${type === 'invoice' ? 'Invoice' : 'Quotation'} updated successfully`
               : `${type === 'invoice' ? 'Invoice' : 'Quotation'} created successfully`
           );
-          // Redirect to invoices list for create, or invoice detail for edit
-          if (mode === 'edit' && initialData) {
-            window.location.href = `/invoices/${initialData.id || 'unknown'}`;
+          if (mode === 'edit' && initialData?.id) {
+            goto(`/invoices/${initialData.id}`);
           } else {
-            window.location.href = '/invoices';
+            goto('/invoices');
           }
         } else if (result.type === 'failure') {
-          errors = result.data?.errors || {};
+          errors = (result.data?.errors as ActionErrors) || {};
           // Show toast for general errors that aren't field-specific
           const message = result.data?.message;
           if (message && typeof message === 'string') {
@@ -212,7 +203,7 @@
             </Select.Content>
           </Select.Root>
           {#if errors?.type}
-            <p class="mt-1 text-sm text-red-600">{errors.type}</p>
+            <p class="mt-1 text-sm text-red-600">{errors.type[0]}</p>
           {/if}
         </div>
 
@@ -223,7 +214,7 @@
           </label>
           <Input id="invoiceNumber" name="invoiceNumber" bind:value={invoiceNum} />
           {#if errors?.invoiceNumber}
-            <p class="mt-1 text-sm text-red-600">{errors.invoiceNumber}</p>
+            <p class="mt-1 text-sm text-red-600">{errors.invoiceNumber[0]}</p>
           {/if}
         </div>
 
@@ -239,7 +230,7 @@
             value={invoiceDate ? invoiceDate.toString() : ''}
           />
           {#if errors?.invoiceDate}
-            <p class="mt-1 text-sm text-red-600">{errors.invoiceDate}</p>
+            <p class="mt-1 text-sm text-red-600">{errors.invoiceDate[0]}</p>
           {/if}
         </div>
 
@@ -273,7 +264,7 @@
             </Select.Content>
           </Select.Root>
           {#if errors?.customerId}
-            <p class="mt-1 text-sm text-red-600">{errors.customerId}</p>
+            <p class="mt-1 text-sm text-red-600">{errors.customerId[0]}</p>
           {/if}
         </div>
       </div>
@@ -285,7 +276,7 @@
         <h3 class="text-lg font-semibold text-gray-900">Items</h3>
       </div>
       {#if errors?.items}
-        <p class="text-sm text-red-600">{errors.items}</p>
+        <p class="text-sm text-red-600">{errors.items[0]}</p>
       {/if}
 
       <div
@@ -370,7 +361,7 @@
                   <div class="font-medium">{formatPKR.compact(item.amount)}</div>
                 </td>
                 <td class="border-r border-brutal px-4 py-2">
-                  <Input bind:value={item.notes} placeholder="Notes" class="min-w-[150px]" />
+                  <Input bind:value={item.notes} placeholder="Notes" class="min-w-37" />
                 </td>
                 <td class="px-4 py-2 text-center">
                   <Button
@@ -446,7 +437,7 @@
             </Select.Root>
           </div>
           {#if errors?.discountValue}
-            <p class="text-sm text-red-600">{errors.discountValue}</p>
+            <p class="text-sm text-red-600">{errors.discountValue[0]}</p>
           {/if}
         </div>
 
@@ -464,7 +455,7 @@
             bind:value={previous}
           />
           {#if errors?.previous}
-            <p class="mt-1 text-sm text-red-600">{errors.previous}</p>
+            <p class="mt-1 text-sm text-red-600">{errors.previous[0]}</p>
           {/if}
         </div>
 
@@ -475,7 +466,7 @@
           </label>
           <Input type="number" min="0" step="0.01" id="paid" name="paid" bind:value={paid} />
           {#if errors?.paid}
-            <p class="mt-1 text-sm text-red-600">{errors.paid}</p>
+            <p class="mt-1 text-sm text-red-600">{errors.paid[0]}</p>
           {/if}
         </div>
       </div>
@@ -530,7 +521,7 @@
         <InputGroupTextarea id="notes" bind:value={notes} name="notes" rows={3} />
       </InputGroup>
       {#if errors?.notes}
-        <p class="mt-1 text-sm text-red-600">{errors.notes}</p>
+        <p class="mt-1 text-sm text-red-600">{errors.notes[0]}</p>
       {/if}
     </div>
 

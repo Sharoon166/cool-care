@@ -32,12 +32,12 @@
   let invoice = $derived(data.invoice);
   let payments = $derived(data.payments);
 
-  let subtotal = $derived(parseFloat(invoice.subtotal));
+  let subtotal = $derived(parseFloat(invoice.subtotal) || 0);
   let discountAmount = $derived(parseFloat(invoice.discountAmount || '0'));
-  let total = $derived(parseFloat(invoice.total));
+  let total = $derived(parseFloat(invoice.total) || 0);
   let previous = $derived(parseFloat(invoice.previous || '0'));
   let totalPaid = $derived(parseFloat(invoice.totalPaid || '0'));
-  let balance = $derived(parseFloat(invoice.balance));
+  let balance = $derived(parseFloat(invoice.balance) || 0);
 
   let maxPaymentAmount = $derived(balance);
 
@@ -82,11 +82,9 @@
   async function handleDeletePayment(payment: any) {
     const confirmed = await confirmDelete({
       title: 'Delete Payment',
-      description: `Are you sure you want to delete this payment of ${formatPKR.compact(parseFloat(payment.amount))}? This action cannot be undone.`,
-      onConfirm: async () => {
-        await deletePayment(payment.id);
-      }
+      description: `Are you sure you want to delete this payment of ${formatPKR.compact(parseFloat(payment.amount))}? This action cannot be undone.`
     });
+    if (confirmed) await deletePayment(payment.id);
   }
 
   function getStatusBadgeVariant(status: string) {

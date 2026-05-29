@@ -111,11 +111,9 @@ import { formatPKR } from '$lib/utils';
   async function handleDelete(customer: Customer) {
     const confirmed = await confirmDelete({
       title: 'Delete Customer',
-      description: `Are you sure you want to delete ${customer.name}? This action cannot be undone.`,
-      onConfirm: async () => {
-        await deleteCustomer(customer.id);
-      }
+      description: `Are you sure you want to delete ${customer.name}? This action cannot be undone.`
     });
+    if (confirmed) await deleteCustomer(customer.id);
   }
 
 </script>

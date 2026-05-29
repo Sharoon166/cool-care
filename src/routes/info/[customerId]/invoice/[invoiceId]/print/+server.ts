@@ -1,11 +1,12 @@
 import { db } from '$lib/server/db';
 import { invoices, customers } from '$lib/server/db/schema';
-import { fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { eq, isNull, and } from 'drizzle-orm';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 import { COMPANY_INFO, PAYMENT_INFO } from '$lib/constants';
 import path from 'path';
+import { LatoRegular, LatoItalic, MontserratBold, MontserratExtraBold } from '$lib/fonts';
 import type { RequestHandler } from './$types';
 import { formatDate, formatPKR } from '$lib/utils';
 
@@ -68,7 +69,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
         )
       );
 
-    if (!invoice) throw fail(404, { message: 'Invoice not found or access denied' });
+    if (!invoice) throw error(404, 'Invoice not found or access denied');
 
     const items = (invoice.items as unknown as InvoiceItem[]) || [];
 
@@ -79,11 +80,10 @@ export const GET: RequestHandler = async ({ params, url }) => {
       'Content-Disposition': `inline; filename="invoice-${invoice.invoiceNumber}.pdf"`
     });
 
-    const f = (n: string) => path.resolve(`static/fonts/${n}`);
-    doc.registerFont('M-Bold', f('Montserrat-Bold.ttf'));
-    doc.registerFont('M-Extra', f('Montserrat-ExtraBold.ttf'));
-    doc.registerFont('L-Reg', f('Lato-Regular.ttf'));
-    doc.registerFont('L-Italic', f('Lato-Italic.ttf'));
+    doc.registerFont('M-Bold', MontserratBold);
+    doc.registerFont('M-Extra', MontserratExtraBold);
+    doc.registerFont('L-Reg', LatoRegular);
+    doc.registerFont('L-Italic', LatoItalic);
 
     const pageWidth = 595;
     const pageHeight = 842;
@@ -431,6 +431,6 @@ export const GET: RequestHandler = async ({ params, url }) => {
     return new Response(result, { headers });
   } catch (err) {
     console.error('PDF Error:', err);
-    throw fail(500);
+    throw error(500, 'Failed to generate PDF');
   }
 };

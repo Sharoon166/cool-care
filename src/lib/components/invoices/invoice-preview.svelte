@@ -6,8 +6,33 @@
   import DownloadIcon from '@tabler/icons-svelte/icons/download';
   import MailIcon from '@tabler/icons-svelte/icons/mail';
   import { goto } from '$app/navigation';
+  import type { InvoiceItem } from '$lib/types';
 
-  let { invoice, customer, readonly = false } = $props();
+  let {
+    invoice = {} as {
+      id: string;
+      invoiceNumber: string;
+      invoiceDate: string | Date;
+      subtotal: string | number;
+      discountType: string;
+      discountValue: string | number;
+      discountAmount: string | number;
+      total: string | number;
+      previous: string | number;
+      paid: string | number;
+      totalPaid: string | number;
+      balance: string | number;
+      status: string;
+      notes?: string;
+      items: InvoiceItem[];
+    },
+    customer = {} as {
+      id: string;
+      name: string;
+      email?: string;
+    },
+    readonly = false
+  } = $props();
 
   function formatDate(date: string | Date) {
     return new Date(date).toLocaleDateString('en-US', {

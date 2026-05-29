@@ -6,6 +6,7 @@ import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 import { COMPANY_INFO, PAYMENT_INFO } from '$lib/constants';
 import path from 'path';
+import { LatoRegular, LatoItalic, MontserratBold, MontserratExtraBold } from '$lib/fonts';
 import type { RequestHandler } from './$types';
 import { formatDate, formatPKR } from '$lib/utils';
 
@@ -67,13 +68,15 @@ export const GET: RequestHandler = async ({ params, url }) => {
 
     /* ---------- PDF SETUP ---------- */
     const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true });
-    const headers = new Headers({ 'Content-Type': 'application/pdf' });
+    const headers = new Headers({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${invoice.invoiceNumber}.pdf"`
+    });
 
-    const f = (n: string) => path.resolve(`static/fonts/${n}`);
-    doc.registerFont('M-Bold', f('Montserrat-Bold.ttf'));
-    doc.registerFont('M-Extra', f('Montserrat-ExtraBold.ttf'));
-    doc.registerFont('L-Reg', f('Lato-Regular.ttf'));
-    doc.registerFont('L-Italic', f('Lato-Italic.ttf'));
+    doc.registerFont('M-Bold', MontserratBold);
+    doc.registerFont('M-Extra', MontserratExtraBold);
+    doc.registerFont('L-Reg', LatoRegular);
+    doc.registerFont('L-Italic', LatoItalic);
 
     const pageWidth = 595;
     const pageHeight = 842;
