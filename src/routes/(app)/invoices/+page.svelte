@@ -31,14 +31,15 @@
   import Search from '@tabler/icons-svelte/icons/search';
   import Trash from '@tabler/icons-svelte/icons/trash';
   import Edit from '@tabler/icons-svelte/icons/edit';
-import Receipt from '@tabler/icons-svelte/icons/receipt';
+  import Receipt from '@tabler/icons-svelte/icons/receipt';
 
-import Coins from '@tabler/icons-svelte/icons/coins';
-import AlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
-import Clock from '@tabler/icons-svelte/icons/clock';
-import { toast } from 'svelte-sonner';
+  import Coins from '@tabler/icons-svelte/icons/coins';
+  import AlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
+  import Clock from '@tabler/icons-svelte/icons/clock';
+  import { toast } from 'svelte-sonner';
   import SearchOff from '@tabler/icons-svelte/icons/search-off';
   import PageHeader from '$lib/components/page-header.svelte';
+  import StatCard from '$lib/components/ui/stat-card/stat-card.svelte';
   import { InputGroup, InputGroupAddon, InputGroupInput } from '$lib/components/ui/input-group';
   import { ConfirmDeleteDialog, confirmDelete } from '$lib/components/ui/confirm-delete-dialog';
   import { formatDate, formatPKR } from '$lib/utils';
@@ -122,11 +123,9 @@ import { toast } from 'svelte-sonner';
   async function handleDelete(invoice: any) {
     const confirmed = await confirmDelete({
       title: 'Delete Invoice',
-      description: `Are you sure you want to delete invoice ${invoice.invoiceNumber}? This action cannot be undone.`,
-      onConfirm: async () => {
-        await deleteInvoice(invoice.id);
-      }
+      description: `Are you sure you want to delete invoice ${invoice.invoiceNumber}? This action cannot be undone.`
     });
+    if (confirmed) await deleteInvoice(invoice.id);
   }
 
   // Update status function
@@ -193,78 +192,37 @@ import { toast } from 'svelte-sonner';
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <!-- Outstanding AR -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#fbbf24] p-5 brutal-shadow-md"
+      <StatCard
+        bg="#fbbf24"
+        label="Outstanding AR"
+        value={formatPKR.compact(data.stats.outstandingAR)}
+        subtext="{data.stats.outstandingCount} unpaid invoices"
       >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <Receipt class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Outstanding AR</span>
-          <div class="font-space text-3xl font-extrabold">
-            {formatPKR.compact(data.stats.outstandingAR)}
-          </div>
-          <p class="text-xs font-semibold text-muted-foreground">
-            {data.stats.outstandingCount} unpaid invoices
-          </p>
-        </div>
-      </div>
-
-      <!-- Overdue -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#ff8a8a] p-5 brutal-shadow-md"
+        {#snippet icon()}<Receipt class="h-6 w-6" />{/snippet}
+      </StatCard>
+      <StatCard
+        bg="#ff8a8a"
+        label="Overdue"
+        value={formatPKR.compact(data.stats.overdueAmount)}
+        subtext="{data.stats.overdueCount} overdue invoices"
       >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <AlertTriangle class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="text-xs font-extrabold tracking-wider uppercase">Overdue</span>
-          <div class="font-space text-3xl font-extrabold">
-            {formatPKR.compact(data.stats.overdueAmount)}
-          </div>
-          <p class="text-xs font-semibold text-muted-foreground">
-            {data.stats.overdueCount} overdue invoices
-          </p>
-        </div>
-      </div>
-
-      <!-- Collected This Month -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#86efac] p-5 brutal-shadow-md"
+        {#snippet icon()}<AlertTriangle class="h-6 w-6" />{/snippet}
+      </StatCard>
+      <StatCard
+        bg="#86efac"
+        label="Collected This Month"
+        value={formatPKR.compact(data.stats.collectedThisMonth)}
       >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <Coins class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Collected This Month</span>
-          <div class="font-space text-3xl font-extrabold">
-            {formatPKR.compact(data.stats.collectedThisMonth)}
-          </div>
-        </div>
-      </div>
-
-      <!-- Drafts Awaiting -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#c084fc] p-5 brutal-shadow-md"
+        {#snippet icon()}<Coins class="h-6 w-6" />{/snippet}
+      </StatCard>
+      <StatCard
+        bg="#c084fc"
+        label="Drafts Awaiting"
+        value={data.stats.draftCount}
+        subtext="awaiting action"
       >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <Clock class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Drafts Awaiting</span>
-          <div class="font-space text-3xl font-extrabold">{data.stats.draftCount}</div>
-          <p class="text-xs font-semibold text-muted-foreground">awaiting action</p>
-        </div>
-      </div>
+        {#snippet icon()}<Clock class="h-6 w-6" />{/snippet}
+      </StatCard>
     </div>
 
     <!-- Filters -->
@@ -335,7 +293,7 @@ import { toast } from 'svelte-sonner';
                 {invoice.type}
               </Badge>
             </TableCell>
-            <TableCell class="min-w-0 max-w-[160px]">
+            <TableCell class="max-w-[160px] min-w-0">
               <div class="truncate text-sm font-extrabold">{invoice.customerName}</div>
               {#if invoice.customerCompany}
                 <div class="truncate text-xs font-semibold text-muted-foreground">
@@ -343,13 +301,15 @@ import { toast } from 'svelte-sonner';
                 </div>
               {/if}
             </TableCell>
-            <TableCell class="hidden lg:table-cell text-sm font-bold whitespace-nowrap">
+            <TableCell class="hidden text-sm font-bold whitespace-nowrap lg:table-cell">
               {formatDate.short(invoice.invoiceDate)}
             </TableCell>
             <TableCell class="font-space text-sm font-extrabold whitespace-nowrap">
               {formatPKR.compact(invoice.total)}
             </TableCell>
-            <TableCell class="hidden md:table-cell font-space text-sm font-extrabold whitespace-nowrap">
+            <TableCell
+              class="hidden font-space text-sm font-extrabold whitespace-nowrap md:table-cell"
+            >
               <span class={parseFloat(invoice.balance) > 0 ? 'text-red-600' : 'text-green-600'}>
                 {parseFloat(invoice.balance) < 0 ? '-' : ''}{formatPKR.compact(
                   Math.abs(parseFloat(invoice.balance))
@@ -375,10 +335,22 @@ import { toast } from 'svelte-sonner';
             </TableCell>
             <TableCell class="text-right">
               <div class="flex items-center justify-end gap-1 sm:gap-2">
-                <Button variant="ghost" size="sm" href="/invoices/{invoice.id}" title="View Details" class="hidden sm:inline-flex">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  href="/invoices/{invoice.id}"
+                  title="View Details"
+                  class="hidden sm:inline-flex"
+                >
                   View
                 </Button>
-                <Button variant="ghost" size="icon" href="/invoices/{invoice.id}" title="View Details" class="sm:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  href="/invoices/{invoice.id}"
+                  title="View Details"
+                  class="sm:hidden"
+                >
                   <Link class="h-4 w-4" />
                 </Button>
                 <Button

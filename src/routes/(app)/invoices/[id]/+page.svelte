@@ -32,12 +32,12 @@
   let invoice = $derived(data.invoice);
   let payments = $derived(data.payments);
 
-  let subtotal = $derived(parseFloat(invoice.subtotal));
+  let subtotal = $derived(parseFloat(invoice.subtotal) || 0);
   let discountAmount = $derived(parseFloat(invoice.discountAmount || '0'));
-  let total = $derived(parseFloat(invoice.total));
+  let total = $derived(parseFloat(invoice.total) || 0);
   let previous = $derived(parseFloat(invoice.previous || '0'));
   let totalPaid = $derived(parseFloat(invoice.totalPaid || '0'));
-  let balance = $derived(parseFloat(invoice.balance));
+  let balance = $derived(parseFloat(invoice.balance) || 0);
 
   let maxPaymentAmount = $derived(balance);
 
@@ -82,11 +82,9 @@
   async function handleDeletePayment(payment: any) {
     const confirmed = await confirmDelete({
       title: 'Delete Payment',
-      description: `Are you sure you want to delete this payment of ${formatPKR.compact(parseFloat(payment.amount))}? This action cannot be undone.`,
-      onConfirm: async () => {
-        await deletePayment(payment.id);
-      }
+      description: `Are you sure you want to delete this payment of ${formatPKR.compact(parseFloat(payment.amount))}? This action cannot be undone.`
     });
+    if (confirmed) await deletePayment(payment.id);
   }
 
   function getStatusBadgeVariant(status: string) {
@@ -223,6 +221,7 @@
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>#</TableHead>
               <TableHead>Description</TableHead>
               <TableHead class="text-center">Qty</TableHead>
               <TableHead class="text-right">Rate</TableHead>
@@ -230,17 +229,22 @@
             </TableRow>
           </TableHeader>
           <TableBody>
-            {#each invoice.items as item (item.id)}
+            {#each invoice.items as item, index (item.id)}
               <TableRow>
+                <TableCell class="text-left">{(index + 1).toString().padStart(2,"0")}.</TableCell>
                 <TableCell>
                   <div>{item.description}</div>
                   {#if item.notes}
-                    <div class="text-sm text-muted-foreground/70">{item.notes}</div>
+                    <div class="text-sm font-medium italic text-muted-foreground/70">{item.notes}</div>
                   {/if}
                 </TableCell>
                 <TableCell class="text-center">{item.quantity}</TableCell>
-                <TableCell class="text-right font-space font-bold">{formatPKR.compact(item.rate)}</TableCell>
-                <TableCell class="text-right font-space font-bold">{formatPKR.compact(item.amount)}</TableCell>
+                <TableCell class="text-right font-space font-bold"
+                  >{formatPKR.compact(item.rate)}</TableCell
+                >
+                <TableCell class="text-right font-space font-bold"
+                  >{formatPKR.compact(item.amount)}</TableCell
+                >
               </TableRow>
             {/each}
           </TableBody>

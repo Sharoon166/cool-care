@@ -8,6 +8,24 @@
   import EyeIcon from '@tabler/icons-svelte/icons/eye';
   import DownloadIcon from '@tabler/icons-svelte/icons/download';
 
+  type InvoiceListItem = {
+    id: string;
+    invoiceNumber: string;
+    type: string;
+    status: string;
+    total: string | number;
+    invoiceDate: string | Date;
+    createdAt: string | Date;
+  };
+
+  type PaymentListItem = {
+    id: string;
+    amount: string | number;
+    paymentDate: string | Date;
+    paymentMethod: string;
+    invoiceNumber: string;
+  };
+
   let {
     invoices,
     quotations,
@@ -16,10 +34,10 @@
     readonly = false,
     customerId = null
   } = $props<{
-    invoices: Array<any>;
-    quotations: Array<any>;
-    payments: Array<any>;
-    onInvoiceSelect?: (invoice: any) => void;
+    invoices: InvoiceListItem[];
+    quotations: InvoiceListItem[];
+    payments: PaymentListItem[];
+    onInvoiceSelect?: (invoice: InvoiceListItem) => void;
     readonly?: boolean;
     customerId?: string | null;
   }>();

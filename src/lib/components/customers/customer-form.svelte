@@ -1,17 +1,18 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import type { Customer } from '$lib/server/db/schema';
-  import Button from '../ui/button/button.svelte';
+  import type { Customer } from '$lib/types';
+  import Button from '$lib/components/ui/button/button.svelte';
   import DeviceFloppy from '@tabler/icons-svelte/icons/device-floppy';
-  import { Spinner } from '../ui/spinner';
+  import { Spinner } from '$lib/components/ui/spinner';
   import { PhoneInput } from '$lib/components/ui/phone-input';
-  import InputGroup from '../ui/input-group/input-group.svelte';
-  import { InputGroupAddon, InputGroupInput, InputGroupTextarea } from '../ui/input-group';
+  import InputGroup from '$lib/components/ui/input-group/input-group.svelte';
+  import { InputGroupAddon, InputGroupInput, InputGroupTextarea } from '$lib/components/ui/input-group';
   import Notebook from '@tabler/icons-svelte/icons/notebook';
-  import { Input } from '../ui/input';
+  import { Input } from '$lib/components/ui/input';
   import At from '@tabler/icons-svelte/icons/at';
   import * as Select from '$lib/components/ui/select/index.js';
-  import Checkbox from '../ui/checkbox/checkbox.svelte';
+  import Checkbox from '$lib/components/ui/checkbox/checkbox.svelte';
+  import type { ActionErrors } from '$lib/types';
 
   type Props = {
     customer?: Customer | null;
@@ -21,8 +22,7 @@
   let { customer = null, onClose = () => {} }: Props = $props();
 
   let loading = $state(false);
-  // TODO: FIX TYPE
-  let errors = $state<any>({});
+  let errors = $state<ActionErrors>({} as ActionErrors);
 
   const isEdit = $derived(customer !== null);
   let priority = $derived(customer?.priority || 'normal');
@@ -39,7 +39,7 @@
         if (result.type === 'success') {
           onClose();
         } else if (result.type === 'failure') {
-          errors = result.data?.errors || {};
+          errors = (result.data?.errors as ActionErrors) || {};
         }
         await update();
       };
@@ -126,16 +126,6 @@
               <Select.Item value="vip">VIP</Select.Item>
             </Select.Content>
           </Select.Root>
-          <!-- <select
-						id="priority"
-						name="priority"
-						value={customer?.priority || 'normal'}
-						class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-					>
-						<option value="normal">Normal</option>
-						<option value="high">High</option>
-						<option value="vip">VIP</option>
-					</select> -->
         </div>
       </div>
     </div>

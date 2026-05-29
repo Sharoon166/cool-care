@@ -100,6 +100,14 @@ export async function addPayment(formData: FormData) {
     const currentBalance = parseFloat(invoice.balance || '0');
     const currentTotalPaid = parseFloat(invoice.totalPaid || '0');
 
+    // Check payment amount validity
+    if (amount <= 0) {
+      return fail(400, {
+        error: 'Payment amount must be positive',
+        data
+      });
+    }
+
     // Check if payment exceeds outstanding balance
     if (amount > currentBalance) {
       return fail(400, {
@@ -139,7 +147,7 @@ export async function addPayment(formData: FormData) {
     await updateInvoicePaymentStatus(invoiceId);
 
     return {
-      success: true,
+      success: true as const,
       payment: newPayment
     };
   } catch (error) {
@@ -203,7 +211,7 @@ export async function deletePayment(formData: FormData) {
       await updateInvoicePaymentStatus(payment.invoiceId);
     }
 
-    return { success: true };
+    return { success: true as const };
   } catch (error) {
     console.error('Database error:', error);
     return fail(500, {
@@ -211,3 +219,6 @@ export async function deletePayment(formData: FormData) {
     });
   }
 }
+
+export type AddPaymentResult = Awaited<ReturnType<typeof addPayment>>;
+export type DeletePaymentResult = Awaited<ReturnType<typeof deletePayment>>;

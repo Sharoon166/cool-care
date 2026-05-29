@@ -6,7 +6,7 @@ export default defineConfig({
   schema: './src/lib/server/db/schema.ts',
   dialect: 'postgresql',
   dbCredentials: { url: process.env.DATABASE_URL },
-  tablesFilter: ['customers', 'invoices', 'payments', 'invoice_counters'],
+  tablesFilter: ['customers', 'invoices', 'payments', 'invoice_counters', 'projects', 'expenses', 'project_payments'],
   verbose: true,
   strict: true
 });

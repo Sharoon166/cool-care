@@ -30,8 +30,8 @@
       }
 
       this.loading = true;
-      this.options
-        ?.onConfirm()
+      const promise = this.options?.onConfirm?.();
+      (promise || Promise.resolve())
         .then(() => {
           this.open = false;
         })
@@ -61,17 +61,28 @@
     cancel?: {
       text?: string;
     };
-    onConfirm: () => Promise<unknown>;
+    onConfirm?: () => Promise<unknown>;
     onCancel?: () => void;
   };
 
-  export function confirmDelete(options: ConfirmDeleteOptions) {
+  export function confirmDelete(options: ConfirmDeleteOptions): Promise<boolean> {
     if (options.skipConfirmation) {
-      options.onConfirm();
-      return;
+      return Promise.resolve(true);
     }
 
-    dialogState.newConfirmation(options);
+    return new Promise<boolean>((resolve) => {
+      dialogState.newConfirmation({
+        ...options,
+        onConfirm: async () => {
+          await options.onConfirm?.();
+          resolve(true);
+        },
+        onCancel: () => {
+          options.onCancel?.();
+          resolve(false);
+        }
+      });
+    });
   }
 </script>
 

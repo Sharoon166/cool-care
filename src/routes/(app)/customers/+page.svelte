@@ -41,6 +41,7 @@ import CustomerForm from '$lib/components/customers/customer-form.svelte';
 import Users from '@tabler/icons-svelte/icons/users';
 import Coins from '@tabler/icons-svelte/icons/coins';
 import AlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
+import StatCard from '$lib/components/ui/stat-card/stat-card.svelte';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '$lib/components/ui/input-group';
 import { ConfirmDeleteDialog, confirmDelete } from '$lib/components/ui/confirm-delete-dialog';
 import { formatPKR } from '$lib/utils';
@@ -111,11 +112,9 @@ import { formatPKR } from '$lib/utils';
   async function handleDelete(customer: Customer) {
     const confirmed = await confirmDelete({
       title: 'Delete Customer',
-      description: `Are you sure you want to delete ${customer.name}? This action cannot be undone.`,
-      onConfirm: async () => {
-        await deleteCustomer(customer.id);
-      }
+      description: `Are you sure you want to delete ${customer.name}? This action cannot be undone.`
     });
+    if (confirmed) await deleteCustomer(customer.id);
   }
 
 </script>
@@ -136,70 +135,18 @@ import { formatPKR } from '$lib/utils';
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <!-- Lifetime Revenue -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#86efac] p-5 brutal-shadow-md"
-      >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <Coins class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Lifetime Revenue</span>
-          <div class="font-space text-3xl font-extrabold">
-            {formatPKR.compact(data.stats.totalRevenue)}
-          </div>
-        </div>
-      </div>
-
-      <!-- Need Collection -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#ff8a8a] p-5 brutal-shadow-md"
-      >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <AlertTriangle class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Need Collection</span>
-          <div class="font-space text-3xl font-extrabold">{data.stats.needCollectionCount}</div>
-          <p class="text-xs font-semibold text-muted-foreground">customers with unpaid invoices</p>
-        </div>
-      </div>
-
-      <!-- Repeat Customers -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#c084fc] p-5 brutal-shadow-md"
-      >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <Users class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">Repeat Customers</span>
-          <div class="font-space text-3xl font-extrabold">{data.stats.repeatCustomers}</div>
-          <p class="text-xs font-semibold text-muted-foreground">with 2+ invoices</p>
-        </div>
-      </div>
-
-      <!-- New This Month -->
-      <div
-        class="flex items-center gap-4 rounded-3xl brutal-border bg-[#fbbf24] p-5 brutal-shadow-md"
-      >
-        <div
-          class="grid size-12 place-content-center rounded-xl brutal-border bg-white brutal-shadow-sm"
-        >
-          <Plus class="h-6 w-6" />
-        </div>
-        <div class="space-y-0.5">
-          <span class="/80 text-xs font-extrabold tracking-wider uppercase">New This Month</span>
-          <div class="font-space text-3xl font-extrabold">{data.stats.newThisMonth}</div>
-          <p class="text-xs font-semibold text-muted-foreground">customers added</p>
-        </div>
-      </div>
+      <StatCard bg="#86efac" label="Lifetime Revenue" value={formatPKR.compact(data.stats.totalRevenue)}>
+        {#snippet icon()}<Coins class="h-6 w-6" />{/snippet}
+      </StatCard>
+      <StatCard bg="#ff8a8a" label="Need Collection" value={data.stats.needCollectionCount} subtext="customers with unpaid invoices">
+        {#snippet icon()}<AlertTriangle class="h-6 w-6" />{/snippet}
+      </StatCard>
+      <StatCard bg="#c084fc" label="Repeat Customers" value={data.stats.repeatCustomers} subtext="with 2+ invoices">
+        {#snippet icon()}<Users class="h-6 w-6" />{/snippet}
+      </StatCard>
+      <StatCard bg="#fbbf24" label="New This Month" value={data.stats.newThisMonth} subtext="customers added">
+        {#snippet icon()}<Plus class="h-6 w-6" />{/snippet}
+      </StatCard>
     </div>
 
     <!-- Filters -->

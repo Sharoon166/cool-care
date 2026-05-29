@@ -27,6 +27,7 @@
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Invoices', path: '/invoices' },
     { name: 'Customers', path: '/customers' },
+    { name: 'Projects', path: '/projects' },
     { name: 'Users', path: '/users' }
   ];
 
@@ -170,7 +171,7 @@
             </DropdownMenu.Label>
             <DropdownMenu.Separator />
             <DropdownMenu.Group>
-              {#each secondaryNavItems as item}
+              {#each secondaryNavItems as item (item.path)}
                 <DropdownMenu.Item onclick={() => goto(item.path)}>
                   <item.icon class="mr-2 h-4 w-4" />
                   <span>{item.name}</span>
@@ -239,7 +240,7 @@
     <!-- Nav Links Body -->
     <div class="flex-1 overflow-y-auto px-6 py-6">
       <nav class="flex flex-col space-y-4">
-        {#each navItems as item}
+        {#each navItems as item (item.path)}
           {@const isActive = page.url.pathname.startsWith(item.path)}
           <a
             href={item.path}

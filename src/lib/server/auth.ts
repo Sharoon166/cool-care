@@ -24,8 +24,8 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24 // 1 day
   },
-  secret: process.env.BETTER_AUTH_SECRET || 'your-secret-key-change-this-in-production',
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:5173',
+  secret: process.env.BETTER_AUTH_SECRET,
+  baseURL: process.env.BETTER_AUTH_URL,
   plugins: [username(), sveltekitCookies(getRequestEvent)]
 });
 

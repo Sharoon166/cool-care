@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { invoices, customers, payments } from '$lib/server/db/schema';
-import { fail } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { eq, isNull, desc, and } from 'drizzle-orm';
 import { addPayment, deletePayment } from '$lib/server/payment-actions';
 import type { Actions, PageServerLoad } from './$types';
@@ -39,9 +39,7 @@ export const load: PageServerLoad = async ({ params }) => {
     .where(and(eq(invoices.id, invoiceId), isNull(invoices.deletedAt)));
 
   if (!invoice) {
-    throw fail(404, {
-      message: 'Invoice not found'
-    });
+    throw error(404, 'Invoice not found');
   }
 
   // Get all payments for this invoice

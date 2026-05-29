@@ -130,6 +130,66 @@ export const payments = pgTable('payments', {
   createdBy: text('created_by')
 });
 
+export const projects = pgTable('projects', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => createId()),
+
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  clientId: text('client_id').references(() => customers.id),
+  budget: decimal('budget', { precision: 10, scale: 2 }).notNull().default('0'),
+  status: varchar('status', { length: 20 }).notNull().default('Active'),
+  startDate: timestamp('start_date'),
+  expectedEndDate: timestamp('expected_end_date'),
+  notes: text('notes'),
+  pin: varchar('pin', { length: 4 }),
+
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  createdBy: text('created_by'),
+  deletedAt: timestamp('deleted_at')
+});
+
+export const expenses = pgTable('expenses', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => createId()),
+
+  projectId: text('project_id')
+    .references(() => projects.id)
+    .notNull(),
+
+  date: timestamp('date').notNull().defaultNow(),
+  category: varchar('category', { length: 50 }).notNull().default('Other'),
+  description: text('description').notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  createdBy: text('created_by')
+});
+
+export const projectPayments = pgTable('project_payments', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => createId()),
+
+  projectId: text('project_id')
+    .references(() => projects.id)
+    .notNull(),
+
+  date: timestamp('date').notNull().defaultNow(),
+  method: varchar('method', { length: 50 }),
+  reference: varchar('reference', { length: 255 }),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  notes: text('notes'),
+
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  createdBy: text('created_by')
+});
+
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
 export type Invoice = typeof invoices.$inferSelect;
@@ -137,3 +197,9 @@ export type NewInvoice = typeof invoices.$inferInsert;
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type InvoiceCounter = typeof invoiceCounters.$inferSelect;
+export type Project = typeof projects.$inferSelect;
+export type NewProject = typeof projects.$inferInsert;
+export type Expense = typeof expenses.$inferSelect;
+export type NewExpense = typeof expenses.$inferInsert;
+export type ProjectPayment = typeof projectPayments.$inferSelect;
+export type NewProjectPayment = typeof projectPayments.$inferInsert;

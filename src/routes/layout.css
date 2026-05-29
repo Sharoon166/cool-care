@@ -218,6 +218,10 @@
     @apply bg-sidebar font-fira text-foreground;
   }
 
+  button {
+    cursor: pointer;
+  }
+
   h1,
   h2,
   h3,

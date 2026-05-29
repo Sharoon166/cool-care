@@ -138,7 +138,7 @@ export const actions: Actions = {
         .returning();
 
       return {
-        success: true,
+        success: true as const,
         customer: newCustomer
       };
     } catch (error) {
@@ -191,7 +191,7 @@ export const actions: Actions = {
         .returning();
 
       return {
-        success: true,
+        success: true as const,
         customer: updatedCustomer
       };
     } catch (error) {
@@ -211,7 +211,7 @@ export const actions: Actions = {
       // Soft delete
       await db.update(customers).set({ deletedAt: new Date() }).where(eq(customers.id, id));
 
-      return { success: true };
+      return { success: true as const };
     } catch (error) {
       console.error('Database error:', error);
       return fail(500, {
@@ -234,7 +234,7 @@ export const actions: Actions = {
         })
         .where(eq(customers.id, id));
 
-      return { success: true };
+      return { success: true as const };
     } catch {
       return fail(500, {
         error: 'Failed to update status'

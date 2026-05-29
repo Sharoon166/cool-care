@@ -5,7 +5,7 @@ import { redirect, type Handle } from '@sveltejs/kit';
 const publicRoutes = ['/login', '/api/auth', '/info'];
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard', '/customers', '/invoices', '/users', '/settings'];
+const protectedRoutes = ['/dashboard', '/customers', '/invoices', '/users', '/settings', '/projects'];
 
 export const handle: Handle = async ({ event, resolve }) => {
   // Get session from better-auth
@@ -19,11 +19,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const { pathname } = event.url;
 
-  // Check if route is public
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  // Check if route is public (exact match or sub-path)
+  const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
 
-  // Check if route is protected
-  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+  // Check if route is protected (exact match or sub-path)
+  const isProtectedRoute = protectedRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
 
   // If it's a protected route and user is not authenticated, redirect to login
   if (isProtectedRoute && !session) {
