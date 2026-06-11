@@ -7,6 +7,7 @@
   import { formatPKR } from '$lib/utils';
   import EyeIcon from '@tabler/icons-svelte/icons/eye';
   import DownloadIcon from '@tabler/icons-svelte/icons/download';
+  import ExternalLinkIcon from '@tabler/icons-svelte/icons/external-link';
 
   type InvoiceListItem = {
     id: string;
@@ -26,18 +27,35 @@
     invoiceNumber: string;
   };
 
+  type ProjectListItem = {
+    id: string;
+    name: string;
+    description: string | null;
+    status: string;
+    budget: number | string;
+    startDate: string | Date | null;
+    expectedEndDate: string | Date | null;
+    createdAt: string | Date;
+    spent: number | string;
+    received: number | string;
+  };
+
   let {
     invoices,
     quotations,
     payments,
+    projects = [],
     onInvoiceSelect,
+    onProjectSelect,
     readonly = false,
     customerId = null
   } = $props<{
     invoices: InvoiceListItem[];
     quotations: InvoiceListItem[];
     payments: PaymentListItem[];
+    projects?: ProjectListItem[];
     onInvoiceSelect?: (invoice: InvoiceListItem) => void;
+    onProjectSelect?: (project: ProjectListItem) => void;
     readonly?: boolean;
     customerId?: string | null;
   }>();
@@ -57,6 +75,21 @@
     }
   }
 
+  function getProjectBadgeClass(status: string) {
+    switch (status) {
+      case 'Active':
+        return 'bg-[#86efac]';
+      case 'Completed':
+        return 'bg-[#c084fc]';
+      case 'On Hold':
+        return 'bg-[#fbbf24]';
+      case 'Cancelled':
+        return 'bg-[#ff8a8a]';
+      default:
+        return 'bg-white';
+    }
+  }
+
   function formatDate(date: string | Date) {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -67,10 +100,11 @@
 </script>
 
 <Tabs.Root value="invoices" class="space-y-6">
-  <Tabs.List class="grid w-full max-w-fit grid-cols-3 gap-2 *:cursor-pointer">
+  <Tabs.List class="grid w-full max-w-fit grid-cols-4 gap-2 *:cursor-pointer">
     <Tabs.Trigger value="invoices">Invoices ({invoices.length})</Tabs.Trigger>
     <Tabs.Trigger value="quotations">Quotations ({quotations.length})</Tabs.Trigger>
     <Tabs.Trigger value="payments">Payments ({payments.length})</Tabs.Trigger>
+    <Tabs.Trigger value="projects">Projects ({projects.length})</Tabs.Trigger>
   </Tabs.List>
 
   <!-- Invoices Tab -->
@@ -293,6 +327,97 @@
         {:else}
           <div class="py-8 text-center text-muted-foreground">
             No payments found for this customer.
+          </div>
+        {/if}
+      </Card.Content>
+    </Card.Root>
+  </Tabs.Content>
+
+  <!-- Projects Tab -->
+  <Tabs.Content value="projects">
+    <Card.Root>
+      <Card.Header>
+        <Card.Title>All Projects</Card.Title>
+        <Card.Description>Projects linked to this customer</Card.Description>
+      </Card.Header>
+      <Card.Content>
+        {#if projects.length > 0}
+          <Table.Root>
+            <Table.Header>
+              <Table.Row>
+                <Table.Head>Project</Table.Head>
+                <Table.Head>Duration</Table.Head>
+                <Table.Head>Budget</Table.Head>
+                <Table.Head>Spent</Table.Head>
+                <Table.Head>Received</Table.Head>
+                <Table.Head>Status</Table.Head>
+                <Table.Head class="text-right">Actions</Table.Head>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {#each projects as project (project.id)}
+                <Table.Row>
+                  <Table.Cell class="max-w-50 min-w-0 font-extrabold">
+                    <div class="truncate text-sm">{project.name}</div>
+                    {#if project.description}
+                      <div class="truncate text-xs font-semibold text-muted-foreground">
+                        {project.description}
+                      </div>
+                    {/if}
+                  </Table.Cell>
+                  <Table.Cell class="text-sm font-semibold whitespace-nowrap">
+                    {project.startDate ? formatDate(project.startDate) : '—'}
+                    {#if project.expectedEndDate}
+                      – {formatDate(project.expectedEndDate)}
+                    {/if}
+                  </Table.Cell>
+                  <Table.Cell class="font-space text-sm font-extrabold whitespace-nowrap">
+                    {formatPKR.compact(project.budget)}
+                  </Table.Cell>
+                  <Table.Cell class="font-space text-sm font-extrabold whitespace-nowrap">
+                    {formatPKR.compact(project.spent)}
+                  </Table.Cell>
+                  <Table.Cell class="font-space text-sm font-extrabold whitespace-nowrap">
+                    {formatPKR.compact(project.received)}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Badge
+                      variant="outline"
+                      class={[
+                        'border border-brutal px-2.5 py-0.5 font-space text-xs font-bold capitalize shadow-[1.5px_1.5px_0px_var(--color-brutal)]',
+                        getProjectBadgeClass(project.status)
+                      ]}
+                    >
+                      {project.status}
+                    </Badge>
+                  </Table.Cell>
+                  <Table.Cell class="text-right">
+                    <div class="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onclick={() => onProjectSelect?.(project)}
+                        title="View Project"
+                      >
+                        <EyeIcon class="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        href={`/projects/${project.id}`}
+                        title="Open Project"
+                      >
+                        <ExternalLinkIcon class="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Table.Cell>
+                </Table.Row>
+              {/each}
+            </Table.Body>
+          </Table.Root>
+        {:else}
+          <div class="py-8 text-center text-muted-foreground">
+            No projects linked to this customer.
           </div>
         {/if}
       </Card.Content>

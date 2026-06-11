@@ -1,9 +1,13 @@
 <script lang="ts">
   import PageHeader from '$lib/components/page-header.svelte';
   import ProjectOverview from '$lib/components/projects/project-overview.svelte';
-  import ProjectExpenses from '$lib/components/projects/project-expenses.svelte';
-  import ProjectPayments from '$lib/components/projects/project-payments.svelte';
+  import ProjectHistory from '$lib/components/projects/project-history.svelte';
   import ProjectDonutChart from '$lib/components/projects/project-donut-chart.svelte';
+
+  // Skeleton components
+  import ProjectOverviewSkeleton from '$lib/components/projects/skeletons/project-overview-skeleton.svelte';
+  import ProjectHistorySkeleton from '$lib/components/projects/skeletons/project-history-skeleton.svelte';
+
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import * as Sheet from '$lib/components/ui/sheet';
@@ -14,11 +18,6 @@
   import ShareIcon from '@tabler/icons-svelte/icons/share-2';
   import LockIcon from '@tabler/icons-svelte/icons/lock';
   import CopyIcon from '@tabler/icons-svelte/icons/copy';
-  import CoinsIcon from '@tabler/icons-svelte/icons/coins';
-  import ReceiptIcon from '@tabler/icons-svelte/icons/receipt';
-  import UsersIcon from '@tabler/icons-svelte/icons/users';
-  import AlertTriangleIcon from '@tabler/icons-svelte/icons/alert-triangle';
-  import StatCard from '$lib/components/ui/stat-card/stat-card.svelte';
   import { Input } from '$lib/components/ui/input/index.js';
   import { UnlockIcon } from '@lucide/svelte';
 
@@ -78,20 +77,22 @@
     }
   }
 
-  async function handleDeleteExpense(expense: any) {
+  async function handleDeleteExpense(expenseId: string) {
+    if (!expenseId) return;
     const confirmed = await confirmDelete({
       title: 'Delete Expense',
       description: 'Are you sure you want to delete this expense? This action cannot be undone.'
     });
-    if (confirmed) await deleteExpense(expense.id);
+    if (confirmed) await deleteExpense(expenseId);
   }
 
-  async function handleDeletePayment(payment: any) {
+  async function handleDeletePayment(paymentId: string) {
+    if (!paymentId) return;
     const confirmed = await confirmDelete({
       title: 'Delete Payment',
       description: 'Are you sure you want to delete this payment? This action cannot be undone.'
     });
-    if (confirmed) await deletePayment(payment.id);
+    if (confirmed) await deletePayment(paymentId);
   }
 
   function openShareSheet() {
@@ -110,8 +111,6 @@
     formData.append('id', projectId);
     formData.append('pin', pinValue);
     const res = await fetch('?/savePin', { method: 'POST', body: formData });
-    console.log('Save PIN response:', res);
-
     return res.ok;
   }
 
@@ -162,27 +161,27 @@
     updatingStatus = false;
   }
 
-  let loading = $state(true);
-  let loadError = $state<string | null>(null);
-
+  // Update header when project loads
   $effect(() => {
-    Promise.all([data.project, data.financials])
-      .then(([p, f]) => {
+    if (data.project instanceof Promise) {
+      data.project.then((p) => {
         project = p;
-        financials = f;
         projectName = p?.name || 'Project Details';
         projectId = p?.id || '';
         pin = p?.pin || '';
-        loading = false;
-        // Auto-generate link if PIN already exists
         if (p?.pin) {
           shareLink = `${window.location.origin}/info/projects/${p.id}?pin=${p.pin}`;
         }
-      })
-      .catch((err) => {
-        loadError = err.message;
-        loading = false;
       });
+    } else {
+      project = data.project;
+      projectName = data.project?.name || 'Project Details';
+      projectId = data.project?.id || '';
+      pin = data.project?.pin || '';
+      if (data.project?.pin) {
+        shareLink = `${window.location.origin}/info/projects/${data.project.id}?pin=${data.project.pin}`;
+      }
+    }
   });
 </script>
 
@@ -190,114 +189,80 @@
   <title>{projectName} - Cool Care</title>
 </svelte:head>
 
-<div>
-  <div class="mb-8">
-    <PageHeader
-      title={projectName}
-      description="Complete project information and financial analytics"
-      backlink="/projects"
-    >
-      {#if projectId}
-        <div class="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" onclick={openStatusDialog}>
-            {project?.status}
-          </Button>
-          <Button href="/projects/{projectId}/edit" variant="outline">
-            <EditIcon class="h-4 w-4" />
-            Edit Project
-          </Button>
-          <Button variant="outline" onclick={openShareSheet}>
-            <ShareIcon class="h-4 w-4" />
-            Share with Client
-          </Button>
-        </div>
-      {/if}
-    </PageHeader>
-  </div>
-
-  {#if loading}
-    <div class="space-y-6">
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {#each [1, 2, 3, 4] as i (i)}
-          <div class="h-24 animate-pulse rounded-3xl brutal-border bg-muted/50 p-5"></div>
-        {/each}
+<div class="mb-8">
+  <PageHeader
+    title={projectName}
+    description="Complete project information and financial analytics"
+  >
+    {#if projectId}
+      <div class="flex items-center gap-2 flex-wrap">
+        <Button variant="outline" onclick={openStatusDialog}>
+          {project?.status}
+        </Button>
+        <Button href="/projects/{projectId}/edit" variant="outline">
+          <EditIcon class="h-4 w-4" />
+          Edit Project
+        </Button>
+        <Button variant="outline" onclick={openShareSheet}>
+          <ShareIcon class="h-4 w-4" />
+          Share with Client
+        </Button>
       </div>
-      <div class="h-64 animate-pulse rounded-3xl brutal-border bg-muted/50"></div>
-      <div class="h-96 animate-pulse rounded-3xl brutal-border bg-muted/50"></div>
-      <div class="h-96 animate-pulse rounded-3xl brutal-border bg-muted/50"></div>
-    </div>
-  {:else if loadError}
-    <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
-      <p class="text-sm text-destructive">Failed to load project details</p>
-      <p class="mt-2 text-xs text-muted-foreground">{loadError}</p>
-    </div>
-  {:else if project && financials}
-    <!-- Stats row -->
-    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <StatCard bg="#86efac" label="Budget" value={formatPKR.compact(project.budget)}>
-        {#snippet icon()}<CoinsIcon class="h-6 w-6" />{/snippet}
-      </StatCard>
-      <StatCard bg="#fbbf24" label="Expenses" value={formatPKR.compact(financials.totalExpenses)}>
-        {#snippet icon()}<AlertTriangleIcon class="h-6 w-6" />{/snippet}
-      </StatCard>
-      <StatCard bg="#86efac" label="Received" value={formatPKR.compact(financials.totalReceived)}>
-        {#snippet icon()}<ReceiptIcon class="h-6 w-6" />{/snippet}
-      </StatCard>
-      <StatCard bg="#c084fc" label="Balance" value={formatPKR.compact(Math.max(0, project.budget - financials.totalReceived))}>
-        {#snippet icon()}<UsersIcon class="h-6 w-6" />{/snippet}
-      </StatCard>
-    </div>
-
-    <!-- Overview + Chart -->
-    <div class="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <ProjectOverview {project} />
-      <ProjectDonutChart
-        expenses={financials.totalExpenses}
-        received={financials.totalReceived}
-        budget={project.budget}
-      />
-    </div>
-
-    <!-- Expenses -->
-    <div class="mb-6">
-      {#await data.expenses}
-        <div class="h-96 animate-pulse rounded-3xl brutal-border bg-muted/50"></div>
-      {:then expenses}
-        <ProjectExpenses
-          {expenses}
-          {projectId}
-          onExpenseSelect={handleExpenseSelect}
-          onDeleteExpense={handleDeleteExpense}
-        />
-      {:catch error}
-        <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
-          <p class="text-sm text-destructive">Failed to load expenses</p>
-          <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
-        </div>
-      {/await}
-    </div>
-
-    <!-- Payments -->
-    <div>
-      {#await data.payments}
-        <div class="h-96 animate-pulse rounded-3xl brutal-border bg-muted/50"></div>
-      {:then payments}
-        <ProjectPayments
-          {payments}
-          {projectId}
-          onPaymentSelect={handlePaymentSelect}
-          onDeletePayment={handleDeletePayment}
-        />
-      {:catch error}
-        <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
-          <p class="text-sm text-destructive">Failed to load payments</p>
-          <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
-        </div>
-      {/await}
-    </div>
-  {/if}
+    {/if}
+  </PageHeader>
 </div>
 
+<div class="space-y-6">
+  <!-- Project Overview with Streaming -->
+  {#await Promise.all([data.project, data.financials])}
+    <ProjectOverviewSkeleton />
+  {:then [p, f]}
+    <ProjectOverview project={p} financials={f} />
+  {:catch error}
+    <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
+      <p class="text-sm text-destructive">Failed to load project overview</p>
+      <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
+    </div>
+  {/await}
+
+  <!-- Budget Breakdown -->
+  {#await Promise.all([data.project, data.financials])}
+    <div class="h-72 animate-pulse rounded-3xl brutal-border bg-muted/50"></div>
+  {:then [p, f]}
+    <ProjectDonutChart
+      expenses={f.totalExpenses}
+      received={f.totalReceived}
+      budget={p.budget}
+    />
+  {:catch error}
+    <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
+      <p class="text-sm text-destructive">Failed to load budget breakdown</p>
+      <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
+    </div>
+  {/await}
+
+  <!-- Project History with Streaming -->
+  {#await Promise.all([data.expenses, data.payments])}
+    <ProjectHistorySkeleton />
+  {:then [expenses, payments]}
+    <ProjectHistory
+      {expenses}
+      {payments}
+      {projectId}
+      onExpenseSelect={handleExpenseSelect}
+      onPaymentSelect={handlePaymentSelect}
+      onDeleteExpense={handleDeleteExpense}
+      onDeletePayment={handleDeletePayment}
+    />
+  {:catch error}
+    <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
+      <p class="text-sm text-destructive">Failed to load project history</p>
+      <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
+    </div>
+  {/await}
+</div>
+
+<!-- Expense / Payment Detail Sheet -->
 <Sheet.Root bind:open={sheetOpen} onOpenChange={(o) => !o && closeSheet()}>
   <Sheet.Content side="right" class="w-screen sm:max-w-xl">
     <Sheet.Header>
@@ -380,6 +345,7 @@
   </Sheet.Content>
 </Sheet.Root>
 
+<!-- Share Sheet -->
 <Sheet.Root bind:open={shareSheetOpen} onOpenChange={(o) => !o && closeShareSheet()}>
   <Sheet.Content side="right" class="w-screen sm:max-w-lg">
     <Sheet.Header>

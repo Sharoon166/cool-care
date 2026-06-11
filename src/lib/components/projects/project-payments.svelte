@@ -44,11 +44,12 @@
     notes: string | null;
   };
 
-  let { payments, projectId = '', onPaymentSelect, onDeletePayment } = $props<{
+  let { payments, projectId = '', onPaymentSelect, onDeletePayment, embedded = false } = $props<{
     payments: PaymentListItem[];
     projectId?: string;
     onPaymentSelect: (payment: PaymentListItem) => void;
     onDeletePayment: (paymentId: string) => void;
+    embedded?: boolean;
   }>();
 
   let showForm = $state(false);
@@ -91,33 +92,56 @@
 </script>
 
 <div>
-  <div class="mb-6 space-y-4">
-    <PageHeader title="Payments Received" description="Track payments received from client">
-      <Button onclick={openCreateForm}>Record Payment</Button>
-    </PageHeader>
-  </div>
+  {#if !embedded}
+    <div class="mb-6 space-y-4">
+      <PageHeader title="Payments Received" description="Track payments received from client">
+        <Button onclick={openCreateForm}>Record Payment</Button>
+      </PageHeader>
+    </div>
 
-  <div class="mb-6 flex flex-wrap justify-between gap-2 sm:gap-4">
-    <div class="flex items-center gap-2">
-      <div class="relative w-50">
-        <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input type="text" bind:value={searchQuery} placeholder="Search payments..."
-          class="pl-8 pr-2 py-1.5 text-sm w-full rounded-xl border border-input bg-background hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent" />
+    <div class="mb-6 flex flex-wrap justify-between gap-2 sm:gap-4">
+      <div class="flex items-center gap-2">
+        <div class="relative w-50">
+          <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input type="text" bind:value={searchQuery} placeholder="Search payments..."
+            class="pl-8 pr-2 py-1.5 text-sm w-full rounded-xl border border-input bg-background hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent" />
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <Select type="single" bind:value={filterMethod}>
+          <SelectTrigger class="capitalize">{filterMethod === 'all' ? 'All Methods' : filterMethod}</SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Methods</SelectItem>
+            <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+            <SelectItem value="Cash">Cash</SelectItem>
+            <SelectItem value="Credit Card">Credit Card</SelectItem>
+            <SelectItem value="Check">Check</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <Select type="single" bind:value={filterMethod}>
-        <SelectTrigger class="capitalize">{filterMethod === 'all' ? 'All Methods' : filterMethod}</SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Methods</SelectItem>
-          <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-          <SelectItem value="Cash">Cash</SelectItem>
-          <SelectItem value="Credit Card">Credit Card</SelectItem>
-          <SelectItem value="Check">Check</SelectItem>
-        </SelectContent>
-      </Select>
+  {:else}
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+      <div class="flex items-center gap-2">
+        <div class="relative w-50">
+          <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input type="text" bind:value={searchQuery} placeholder="Search payments..."
+            class="pl-8 pr-2 py-1.5 text-sm w-full rounded-xl border border-input bg-background hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent" />
+        </div>
+        <Select type="single" bind:value={filterMethod}>
+          <SelectTrigger class="capitalize">{filterMethod === 'all' ? 'All Methods' : filterMethod}</SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Methods</SelectItem>
+            <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+            <SelectItem value="Cash">Cash</SelectItem>
+            <SelectItem value="Credit Card">Credit Card</SelectItem>
+            <SelectItem value="Check">Check</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <Button onclick={openCreateForm}>Record Payment</Button>
     </div>
-  </div>
+  {/if}
 
   <div class="overflow-hidden brutal-card rounded-3xl bg-card p-1">
     <Table>

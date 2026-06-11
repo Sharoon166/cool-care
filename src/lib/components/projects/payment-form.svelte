@@ -6,6 +6,8 @@
   import { Input } from '$lib/components/ui/input';
   import { InputGroup, InputGroupAddon, InputGroupInput } from '$lib/components/ui/input-group';
   import * as Select from '$lib/components/ui/select/index.js';
+  import { DatePicker } from '$lib/components/ui/date-picker';
+  import { CalendarDate, type DateValue } from '@internationalized/date';
   import { formatPKR } from '$lib/utils';
   import type { ActionErrors } from '$lib/types';
 
@@ -32,7 +34,14 @@
 
   const isEdit = $derived(payment !== null);
 
-  let date = $state(payment?.date || '');
+  function toDateValue(value: string | Date | undefined | null): DateValue | undefined {
+    if (!value) return undefined;
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return undefined;
+    return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
+  }
+
+  let date = $state<DateValue | undefined>(toDateValue(payment?.date));
   let method = $state(payment?.method || '');
   let reference = $state(payment?.reference || '');
   let amount = $state(payment?.amount || 0);
@@ -69,7 +78,8 @@
           <label for="date" class="mb-1 block text-sm font-medium text-gray-700">
             Date <span class="text-red-500">*</span>
           </label>
-          <Input id="date" name="date" type="date" bind:value={date} />
+          <DatePicker bind:value={date} class="w-full" />
+          <input type="hidden" name="date" value={date ? date.toString() : ''} />
           {#if errors.date}
             <p class="mt-1 text-sm text-red-600">{errors.date[0]}</p>
           {/if}

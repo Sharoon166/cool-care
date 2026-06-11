@@ -10,21 +10,34 @@
     received = 0,
     budget = 0
   }: {
-    expenses?: number;
-    received?: number;
-    budget?: number;
+    expenses?: number | string;
+    received?: number | string;
+    budget?: number | string;
   } = $props();
 
-  let remainingToCollect = $derived(Math.max(0, budget - received));
-  let profit = $derived(Math.max(0, received - expenses));
-  let atLoss = $derived(expenses > received);
+  let numericExpenses = $derived(Number(expenses) || 0);
+  let numericReceived = $derived(Number(received) || 0);
+  let numericBudget = $derived(Number(budget) || 0);
 
-  // Three slices: expenses, profit (received - expenses), pending
+  let spentWithinBudget = $derived(Math.min(numericExpenses, numericBudget));
+  let profitWithinBudget = $derived(
+    Math.max(0, Math.min(numericBudget - spentWithinBudget, numericReceived - numericExpenses))
+  );
+  let remainingBudget = $derived(
+    Math.max(0, numericBudget - spentWithinBudget - profitWithinBudget)
+  );
+  let overBudget = $derived(Math.max(0, numericExpenses - numericBudget));
+  let profit = $derived(Math.max(0, numericReceived - numericExpenses));
+  let lossAmount = $derived(Math.max(0, numericExpenses - numericReceived));
+  let overCollected = $derived(Math.max(0, numericReceived - numericBudget));
+  let atLoss = $derived(lossAmount > 0);
+
+  // Budget decomposition: spent, profit, remaining
   let chartData = $derived(
     [
-      { label: 'Expenses', value: expenses,            color: '#fb923c' },
-      ...(atLoss ? [] : [{ label: 'Profit',  value: profit,             color: '#86efac' }]),
-      { label: 'Pending',  value: remainingToCollect, color: '#c084fc' }
+      { label: 'Spent', value: spentWithinBudget, color: '#fb923c' },
+      { label: 'Profit', value: profitWithinBudget, color: '#86efac' },
+      { label: 'Remaining', value: remainingBudget, color: '#c084fc' }
     ].filter((item) => item.value > 0)
   );
 
@@ -44,10 +57,10 @@
   // Center label: show hovered/active slice or total budget
   let centerValue = $derived(
     hoveredIndex >= 0
-      ? formatPKR.short(chartData[hoveredIndex]?.value ?? budget)
+      ? formatPKR.short(chartData[hoveredIndex]?.value ?? numericBudget)
       : activeIndex >= 0
-        ? formatPKR.short(chartData[activeIndex]?.value ?? budget)
-        : formatPKR.short(budget)
+        ? formatPKR.short(chartData[activeIndex]?.value ?? numericBudget)
+        : formatPKR.short(numericBudget)
   );
   let centerLabel = $derived(
     hoveredIndex >= 0
@@ -58,11 +71,11 @@
   );
 
   function percentageFor(value: number): number {
-    return budget > 0 ? Math.round((value / budget) * 100) : 0;
+    return numericBudget > 0 ? Math.round((value / numericBudget) * 100) : 0;
   }
 </script>
 
-{#if budget === 0}
+{#if numericBudget === 0}
   <Card.Root class="overflow-hidden brutal-card bg-card">
     <Card.Content class="p-6">
       <div class="flex h-[200px] flex-col items-center justify-center text-center">
@@ -76,7 +89,7 @@
     <Card.Header class="pb-2">
       <Card.Title class="text-lg font-semibold text-foreground">Budget Breakdown</Card.Title>
       <Card.Description class="text-sm text-muted-foreground">
-        Budget · Expenses · Profit · Pending
+        Spent, profit, and remaining budget
       </Card.Description>
     </Card.Header>
     <Card.Content class="p-6 pt-2">
@@ -119,7 +132,6 @@
         </PieChart>
       </Chart.Container>
 
-      <!-- Legend: all 3 slices -->
       <div class="mt-3 grid grid-cols-3 gap-2">
         {#each chartData as item, i (item.label)}
           <button
@@ -138,9 +150,30 @@
         {/each}
       </div>
 
-      <div class="mt-2 text-center text-xs text-muted-foreground">
-        Total Received: {formatPKR.compact(received)}
+      <div class="mt-4 grid grid-cols-1 gap-2">
+        <div class="rounded-lg border border-border/50 bg-background p-3">
+          <div class="text-[11px] font-semibold text-muted-foreground">Received</div>
+          <div class="mt-1 text-sm font-extrabold text-foreground">
+            {formatPKR.compact(numericReceived)}
+          </div>
+        </div>
       </div>
+
+      {#if overCollected > 0}
+        <div class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+          <div class="text-xs text-emerald-700">
+            Payments received exceed budget by {formatPKR.compact(overCollected)}
+          </div>
+        </div>
+      {/if}
+
+      {#if overBudget > 0}
+        <div class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
+          <div class="text-xs text-red-700">
+            Expenses are over budget by {formatPKR.compact(overBudget)}
+          </div>
+        </div>
+      {/if}
 
       {#if atLoss}
         <div class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2">

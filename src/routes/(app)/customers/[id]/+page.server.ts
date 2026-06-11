@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
-import { customers, invoices, payments } from '$lib/server/db/schema';
-import { desc, sql, and, eq } from 'drizzle-orm';
+import { customers, invoices, payments, projects, expenses, projectPayments } from '$lib/server/db/schema';
+import { desc, sql, and, eq, isNull } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 
 // Separate query functions for streaming
@@ -199,6 +199,32 @@ async function getCustomerPayments(customerId: string) {
   }
 }
 
+async function getCustomerProjects(customerId: string) {
+  try {
+    const customerProjects = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        status: projects.status,
+        budget: sql<number>`CAST(${projects.budget} AS numeric)`,
+        startDate: projects.startDate,
+        expectedEndDate: projects.expectedEndDate,
+        createdAt: projects.createdAt,
+        spent: sql<number>`COALESCE((SELECT SUM(CAST(${expenses.amount} AS numeric)) FROM ${expenses} WHERE ${expenses.projectId} = ${projects.id}), 0)`,
+        received: sql<number>`COALESCE((SELECT SUM(CAST(${projectPayments.amount} AS numeric)) FROM ${projectPayments} WHERE ${projectPayments.projectId} = ${projects.id}), 0)`
+      })
+      .from(projects)
+      .where(and(eq(projects.clientId, customerId), isNull(projects.deletedAt)))
+      .orderBy(desc(projects.createdAt));
+
+    return customerProjects;
+  } catch (err) {
+    console.error('Customer projects loading error:', err);
+    throw err;
+  }
+}
+
 export async function load({ params }) {
   const customerId = params.id;
 
@@ -240,7 +266,8 @@ export async function load({ params }) {
       }),
       invoices: Promise.resolve([]),
       quotations: Promise.resolve([]),
-      payments: Promise.resolve([])
+      payments: Promise.resolve([]),
+      projects: Promise.resolve([])
     };
   }
 
@@ -251,6 +278,7 @@ export async function load({ params }) {
     metrics: getCustomerMetrics(customerId),
     invoices: getCustomerInvoices(customerId),
     quotations: getCustomerQuotations(customerId),
-    payments: getCustomerPayments(customerId)
+    payments: getCustomerPayments(customerId),
+    projects: getCustomerProjects(customerId)
   };
 }

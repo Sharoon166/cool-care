@@ -10,6 +10,7 @@
 
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Sheet from '$lib/components/ui/sheet';
+  import { goto } from '$app/navigation';
   import EditIcon from '@tabler/icons-svelte/icons/edit';
 
   let { data } = $props();
@@ -25,6 +26,10 @@
   function closeSheet() {
     sheetOpen = false;
     selectedInvoice = null;
+  }
+
+  function handleProjectSelect(project: { id: string }) {
+    goto(`/projects/${project.id}`);
   }
 
   // Resolved customer for header (await inline for immediate display)
@@ -49,7 +54,6 @@
   <PageHeader
     title={customerName}
     description="Complete customer information and business analytics"
-    backlink="/customers"
   >
     {#if customerId}
       <Button href="/customers/{customerId}/edit" variant="outline">
@@ -74,14 +78,16 @@
   {/await}
 
   <!-- Customer History with Streaming -->
-  {#await Promise.all([data.invoices, data.quotations, data.payments])}
+  {#await Promise.all([data.invoices, data.quotations, data.payments, data.projects])}
     <CustomerHistorySkeleton />
-  {:then [invoices, quotations, payments]}
+  {:then [invoices, quotations, payments, projects]}
     <CustomerHistory
       {invoices}
       {quotations}
       {payments}
+      {projects}
       onInvoiceSelect={handleInvoiceSelect}
+      onProjectSelect={handleProjectSelect}
     />
   {:catch error}
     <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">

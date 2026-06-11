@@ -22,11 +22,11 @@ export const PAYMENT_INFO = {
     swiftCode: 'HABLPKKA'
   },
   jazzCash: {
-    accountNumber: '0315-5417036',
-    accountTitle: 'Sharoon Shalam'
-  },
-  easyPaisa: {
     accountNumber: '0336-3097147',
     accountTitle: 'Allah Ditta Masih'
+  },
+  easyPaisa: {
+    accountNumber: '0315-5417036',
+    accountTitle: 'Sharoon Shalam'
   }
 } as const;

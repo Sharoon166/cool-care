@@ -43,11 +43,12 @@
     amount: number | string;
   };
 
-  let { expenses, projectId = '', onExpenseSelect, onDeleteExpense } = $props<{
+  let { expenses, projectId = '', onExpenseSelect, onDeleteExpense, embedded = false } = $props<{
     expenses: ExpenseListItem[];
     projectId?: string;
     onExpenseSelect: (expense: ExpenseListItem) => void;
     onDeleteExpense: (expenseId: string) => void;
+    embedded?: boolean;
   }>();
 
   let showForm = $state(false);
@@ -87,33 +88,56 @@
 </script>
 
 <div>
-  <div class="mb-6 space-y-4">
-    <PageHeader title="Expenses" description="Log and track project expenses">
-      <Button onclick={openCreateForm}>Log Expense</Button>
-    </PageHeader>
-  </div>
+  {#if !embedded}
+    <div class="mb-6 space-y-4">
+      <PageHeader title="Expenses" description="Log and track project expenses">
+        <Button onclick={openCreateForm}>Log Expense</Button>
+      </PageHeader>
+    </div>
 
-  <div class="mb-6 flex justify-between flex-wrap gap-2 sm:gap-4">
-    <div class="flex items-center gap-2">
-      <div class="relative w-50">
-        <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input type="text" bind:value={searchQuery} placeholder="Search expenses..."
-          class="pl-8 pr-2 py-1.5 text-sm w-full rounded-xl border border-input bg-background hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent" />
+    <div class="mb-6 flex justify-between flex-wrap gap-2 sm:gap-4">
+      <div class="flex items-center gap-2">
+        <div class="relative w-50">
+          <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input type="text" bind:value={searchQuery} placeholder="Search expenses..."
+            class="pl-8 pr-2 py-1.5 text-sm w-full rounded-xl border border-input bg-background hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent" />
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <Select type="single" bind:value={filterCategory}>
+          <SelectTrigger class="capitalize">{filterCategory === 'all' ? 'All Categories' : filterCategory}</SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="Labor">Labor</SelectItem>
+            <SelectItem value="Materials">Materials</SelectItem>
+            <SelectItem value="Software">Software</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <Select type="single" bind:value={filterCategory}>
-        <SelectTrigger class="capitalize">{filterCategory === 'all' ? 'All Categories' : filterCategory}</SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Categories</SelectItem>
-          <SelectItem value="Labor">Labor</SelectItem>
-          <SelectItem value="Materials">Materials</SelectItem>
-          <SelectItem value="Software">Software</SelectItem>
-          <SelectItem value="Other">Other</SelectItem>
-        </SelectContent>
-      </Select>
+  {:else}
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+      <div class="flex items-center gap-2">
+        <div class="relative w-50">
+          <Search class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input type="text" bind:value={searchQuery} placeholder="Search expenses..."
+            class="pl-8 pr-2 py-1.5 text-sm w-full rounded-xl border border-input bg-background hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent" />
+        </div>
+        <Select type="single" bind:value={filterCategory}>
+          <SelectTrigger class="capitalize">{filterCategory === 'all' ? 'All Categories' : filterCategory}</SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="Labor">Labor</SelectItem>
+            <SelectItem value="Materials">Materials</SelectItem>
+            <SelectItem value="Software">Software</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <Button onclick={openCreateForm}>Log Expense</Button>
     </div>
-  </div>
+  {/if}
 
   <div class="overflow-hidden brutal-card rounded-3xl bg-card p-1">
     <Table>
