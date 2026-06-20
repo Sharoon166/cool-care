@@ -23,7 +23,7 @@
   type Props = {
     expense?: ExpenseFormProps | null;
     projectId: string;
-    onClose?: () => void;
+    onClose?: (shouldRefresh?: boolean) => void | Promise<void>;
   };
 
   let { expense = null, projectId, onClose = () => {} }: Props = $props();
@@ -53,14 +53,13 @@
     use:enhance={() => {
       loading = true;
       errors = {};
-      return async ({ result, update }) => {
+      return async ({ result }) => {
         loading = false;
         if (result.type === 'success') {
-          onClose();
+          await onClose(true);
         } else if (result.type === 'failure') {
           errors = (result.data?.errors as ActionErrors) || {};
         }
-        await update();
       };
     }}
     class="space-y-6 pb-8"
@@ -132,7 +131,7 @@
     </div>
 
     <div class="flex justify-end gap-3 border-t pt-4">
-      <Button type="button" variant="outline" onclick={onClose}>Cancel</Button>
+      <Button type="button" variant="outline" onclick={() => void onClose()}>Cancel</Button>
       <Button type="submit" disabled={loading}>
         {#if loading}
           <Spinner />

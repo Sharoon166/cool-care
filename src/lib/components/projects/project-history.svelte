@@ -28,7 +28,8 @@
     onExpenseSelect,
     onPaymentSelect,
     onDeleteExpense,
-    onDeletePayment
+    onDeletePayment,
+    onDataChanged
   } = $props<{
     expenses: ExpenseListItem[];
     payments: PaymentListItem[];
@@ -37,6 +38,7 @@
     onPaymentSelect: (payment: PaymentListItem) => void;
     onDeleteExpense: (expenseId: string) => void;
     onDeletePayment: (paymentId: string) => void;
+    onDataChanged: () => void | Promise<void>;
   }>();
 </script>
 
@@ -58,6 +60,7 @@
           {projectId}
           onExpenseSelect={onExpenseSelect}
           onDeleteExpense={onDeleteExpense}
+          onDataChanged={onDataChanged}
           embedded
         />
       </Card.Content>
@@ -76,6 +79,7 @@
           {projectId}
           onPaymentSelect={onPaymentSelect}
           onDeletePayment={onDeletePayment}
+          onDataChanged={onDataChanged}
           embedded
         />
       </Card.Content>

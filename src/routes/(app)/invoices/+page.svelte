@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { invalidateAll } from '$app/navigation';
+  import { invalidate } from '$app/navigation';
   import Button from '$lib/components/ui/button/button.svelte';
   import {
     Select,
@@ -82,7 +82,10 @@
   function closeStatusDialog() {
     showStatusDialog = false;
     selectedInvoice = null;
-    invalidateAll();
+  }
+
+  async function refreshInvoices() {
+    await Promise.all([invalidate('app:invoices:list'), invalidate('app:invoices:stats')]);
   }
 
   function openPaymentDialog(invoice: any) {
@@ -93,7 +96,6 @@
   function closePaymentDialog() {
     showPaymentDialog = false;
     paymentInvoice = null;
-    invalidateAll();
   }
 
   // Delete invoice function
@@ -109,7 +111,7 @@
 
       if (response.ok) {
         toast.success('Invoice deleted successfully');
-        await invalidateAll();
+        await refreshInvoices();
       } else {
         toast.error('Failed to delete invoice');
       }
@@ -143,6 +145,7 @@
       if (response.ok) {
         toast.success('Status updated successfully');
         closeStatusDialog();
+        await refreshInvoices();
       } else {
         toast.error('Failed to update status');
       }

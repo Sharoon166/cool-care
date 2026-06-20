@@ -13,7 +13,11 @@ function stripMeta(obj: Record<string, unknown>) {
   return clean;
 }
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ depends }) => {
+  depends('app:projects:list');
+  depends('app:projects:stats');
+  depends('app:projects:customers');
+
   const [allProjects, allCustomers] = await Promise.all([
     db
       .select({

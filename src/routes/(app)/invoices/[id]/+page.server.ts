@@ -5,8 +5,11 @@ import { eq, isNull, desc, and } from 'drizzle-orm';
 import { addPayment, deletePayment } from '$lib/server/payment-actions';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, depends }) => {
   const invoiceId = params.id;
+
+  depends(`app:invoice:${invoiceId}`);
+  depends(`app:invoice:${invoiceId}:payments`);
 
   // Get invoice with customer info
   const [invoice] = await db

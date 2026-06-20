@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { invalidateAll } from '$app/navigation';
+  import { invalidate } from '$app/navigation';
   import type { Project, Customer } from '$lib/server/db/schema';
   import Button from '$lib/components/ui/button/button.svelte';
   import {
@@ -40,6 +40,7 @@
   import CircleCheck from '@tabler/icons-svelte/icons/circle-check';
   import Receipt from '@tabler/icons-svelte/icons/receipt';
   import TrendingUp from '@tabler/icons-svelte/icons/trending-up';
+  import Users from '@tabler/icons-svelte/icons/users';
   import StatCard from '$lib/components/ui/stat-card/stat-card.svelte';
   import { InputGroup, InputGroupAddon, InputGroupInput } from '$lib/components/ui/input-group';
   import LockAccess from '@tabler/icons-svelte/icons/lock-access';
@@ -106,9 +107,20 @@
     showForm = true;
   }
 
-  function closeForm() {
+  async function refreshProjects() {
+    await Promise.all([
+      invalidate('app:projects:list'),
+      invalidate('app:projects:stats'),
+      invalidate('app:projects:customers')
+    ]);
+  }
+
+  async function closeForm(shouldRefresh = false) {
     showForm = false;
-    invalidateAll();
+    editingProject = null;
+    if (shouldRefresh) {
+      await refreshProjects();
+    }
   }
 
   // Delete project function
@@ -123,7 +135,7 @@
       });
 
       if (response.ok) {
-        await invalidateAll();
+        await refreshProjects();
       }
     } catch (error) {
       console.error('Failed to delete project:', error);
@@ -158,7 +170,7 @@
       const response = await fetch('?/updateStatus', { method: 'POST', body: formData });
       if (response.ok) {
         closeStatusDialog();
-        await invalidateAll();
+        await refreshProjects();
       }
     } catch {
       /* ignore */

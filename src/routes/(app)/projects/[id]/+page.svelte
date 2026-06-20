@@ -3,6 +3,7 @@
   import ProjectOverview from '$lib/components/projects/project-overview.svelte';
   import ProjectHistory from '$lib/components/projects/project-history.svelte';
   import ProjectDonutChart from '$lib/components/projects/project-donut-chart.svelte';
+  import ExpenseBreakdown from '$lib/components/projects/expense-breakdown.svelte';
 
   // Skeleton components
   import ProjectOverviewSkeleton from '$lib/components/projects/skeletons/project-overview-skeleton.svelte';
@@ -12,7 +13,7 @@
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import * as Sheet from '$lib/components/ui/sheet';
   import { ConfirmDeleteDialog, confirmDelete } from '$lib/components/ui/confirm-delete-dialog';
-  import { invalidateAll } from '$app/navigation';
+  import { invalidate } from '$app/navigation';
   import { formatPKR } from '$lib/utils';
   import EditIcon from '@tabler/icons-svelte/icons/edit';
   import ShareIcon from '@tabler/icons-svelte/icons/share-2';
@@ -55,6 +56,17 @@
     selectedPayment = null;
   }
 
+  async function refreshProjectDetail() {
+    if (!projectId) return;
+
+    await Promise.all([
+      invalidate(`app:project:${projectId}`),
+      invalidate(`app:project:${projectId}:financials`),
+      invalidate(`app:project:${projectId}:expenses`),
+      invalidate(`app:project:${projectId}:payments`)
+    ]);
+  }
+
   async function deleteExpense(expenseId: string) {
     const formData = new FormData();
     formData.append('id', expenseId);
@@ -62,7 +74,7 @@
     const response = await fetch('?/deleteExpense', { method: 'POST', body: formData });
     if (response.ok) {
       closeSheet();
-      await invalidateAll();
+      await refreshProjectDetail();
     }
   }
 
@@ -73,7 +85,7 @@
     const response = await fetch('?/deletePayment', { method: 'POST', body: formData });
     if (response.ok) {
       closeSheet();
-      await invalidateAll();
+      await refreshProjectDetail();
     }
   }
 
@@ -153,7 +165,10 @@
       if (response.ok) {
         closeStatusDialog();
         project.status = status;
-        await invalidateAll();
+        await Promise.all([
+          invalidate(`app:project:${projectId}`),
+          invalidate(`app:project:${projectId}:financials`)
+        ]);
       }
     } catch {
       /* ignore */
@@ -225,21 +240,41 @@
     </div>
   {/await}
 
-  <!-- Budget Breakdown -->
-  {#await Promise.all([data.project, data.financials])}
-    <div class="h-72 animate-pulse rounded-3xl brutal-border bg-muted/50"></div>
-  {:then [p, f]}
-    <ProjectDonutChart
-      expenses={f.totalExpenses}
-      received={f.totalReceived}
-      budget={p.budget}
-    />
-  {:catch error}
-    <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
-      <p class="text-sm text-destructive">Failed to load budget breakdown</p>
-      <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
+  <!-- Budget & Expense Breakdown -->
+  <div class="flex flex-col gap-6 lg:flex-row">
+    <div class="w-full lg:w-1/2">
+      {#await Promise.all([data.project, data.financials])}
+        <div class="h-72 animate-pulse rounded-3xl brutal-border bg-muted/50"></div>
+      {:then [p, f]}
+        <ProjectDonutChart
+          expenses={f.totalExpenses}
+          received={f.totalReceived}
+          budget={p.budget}
+        />
+      {:catch error}
+        <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
+          <p class="text-sm text-destructive">Failed to load budget breakdown</p>
+          <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
+        </div>
+      {/await}
     </div>
-  {/await}
+    <div class="w-full lg:w-1/2">
+      {#await Promise.all([data.expenses, data.project, data.financials])}
+        <div class="h-72 animate-pulse rounded-3xl brutal-border bg-muted/50"></div>
+      {:then [expenses, p, f]}
+        <ExpenseBreakdown
+          {expenses}
+          budget={p.budget}
+          totalExpenses={f.totalExpenses}
+        />
+      {:catch error}
+        <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
+          <p class="text-sm text-destructive">Failed to load expense breakdown</p>
+          <p class="mt-2 text-xs text-muted-foreground">{error.message}</p>
+        </div>
+      {/await}
+    </div>
+  </div>
 
   <!-- Project History with Streaming -->
   {#await Promise.all([data.expenses, data.payments])}
@@ -253,6 +288,7 @@
       onPaymentSelect={handlePaymentSelect}
       onDeleteExpense={handleDeleteExpense}
       onDeletePayment={handleDeletePayment}
+      onDataChanged={refreshProjectDetail}
     />
   {:catch error}
     <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
@@ -300,7 +336,11 @@
           </div>
         </div>
         <div class="flex justify-end gap-2 border-t pt-4">
-          <Button variant="ghost" size="sm" onclick={() => handleDeleteExpense(selectedExpense)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onclick={() => handleDeleteExpense(selectedExpense.id)}
+          >
             Delete
           </Button>
           <Button variant="outline" onclick={closeSheet}>Close</Button>
@@ -335,7 +375,11 @@
           </div>
         </div>
         <div class="flex justify-end gap-2 border-t pt-4">
-          <Button variant="ghost" size="sm" onclick={() => handleDeletePayment(selectedPayment)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onclick={() => handleDeletePayment(selectedPayment.id)}
+          >
             Delete
           </Button>
           <Button variant="outline" onclick={closeSheet}>Close</Button>

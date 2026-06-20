@@ -141,7 +141,8 @@
     {action}
     use:enhance={() => {
       loading = true;
-      return async ({ result, update }) => {
+      errors = {} as ActionErrors;
+      return async ({ result }) => {
         loading = false;
         if (result.type === 'success') {
           toast.success(
@@ -150,10 +151,11 @@
               : `${type === 'invoice' ? 'Invoice' : 'Quotation'} created successfully`
           );
           if (mode === 'edit' && initialData?.id) {
-            goto(`/invoices/${initialData.id}`);
+            await goto(`/invoices/${initialData.id}`);
           } else {
-            goto('/invoices');
+            await goto('/invoices');
           }
+          return;
         } else if (result.type === 'failure') {
           errors = (result.data?.errors as ActionErrors) || {};
           // Show toast for general errors that aren't field-specific
@@ -170,7 +172,6 @@
         } else if (result.type === 'error') {
           toast.error('An unexpected error occurred. Please try again.');
         }
-        await update();
       };
     }}
     class="space-y-6 pb-8"

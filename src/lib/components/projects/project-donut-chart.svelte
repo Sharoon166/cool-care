@@ -3,6 +3,7 @@
   import * as Card from '$lib/components/ui/card/index.js';
   import * as Chart from '$lib/components/ui/chart/index.js';
   import ChartStyle from '$lib/components/ui/chart/chart-style.svelte';
+  import ChartTooltip from '$lib/components/ui/chart/chart-tooltip.svelte';
   import { formatPKR } from '$lib/utils';
 
   let {
@@ -104,7 +105,9 @@
           innerRadius={65}
           padAngle={0.04}
           props={{ pie: { motion: 'tween' } }}
-        >
+        >{#snippet tooltip()}
+          <ChartTooltip indicator="dot" />
+        {/snippet}
           {#snippet aboveMarks()}
             <Text
               value={centerValue}

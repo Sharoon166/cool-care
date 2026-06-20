@@ -16,7 +16,7 @@
 
   type Props = {
     customer?: Customer | null;
-    onClose?: () => void;
+    onClose?: (shouldRefresh?: boolean) => void | Promise<void>;
   };
 
   let { customer = null, onClose = () => {} }: Props = $props();
@@ -34,14 +34,14 @@
     action={isEdit ? '?/update' : '?/create'}
     use:enhance={() => {
       loading = true;
-      return async ({ result, update }) => {
+      errors = {} as ActionErrors;
+      return async ({ result }) => {
         loading = false;
         if (result.type === 'success') {
-          onClose();
+          await onClose(true);
         } else if (result.type === 'failure') {
           errors = (result.data?.errors as ActionErrors) || {};
         }
-        await update();
       };
     }}
     class="space-y-6 pb-8"
@@ -209,7 +209,7 @@
 
     <!-- Form Actions -->
     <div class="flex justify-end gap-3 border-t pt-4">
-      <Button type="button" variant="outline" onclick={onClose}>Cancel</Button>
+      <Button type="button" variant="outline" onclick={() => void onClose()}>Cancel</Button>
       <Button type="submit" disabled={loading}>
         {#if loading}
           <Spinner />

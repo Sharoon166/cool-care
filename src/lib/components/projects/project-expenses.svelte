@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { invalidateAll } from '$app/navigation';
   import Button from '$lib/components/ui/button/button.svelte';
   import {
     Select,
@@ -43,11 +42,19 @@
     amount: number | string;
   };
 
-  let { expenses, projectId = '', onExpenseSelect, onDeleteExpense, embedded = false } = $props<{
+  let {
+    expenses,
+    projectId = '',
+    onExpenseSelect,
+    onDeleteExpense,
+    onDataChanged,
+    embedded = false
+  } = $props<{
     expenses: ExpenseListItem[];
     projectId?: string;
     onExpenseSelect: (expense: ExpenseListItem) => void;
     onDeleteExpense: (expenseId: string) => void;
+    onDataChanged: () => void | Promise<void>;
     embedded?: boolean;
   }>();
 
@@ -66,7 +73,13 @@
 
   function openCreateForm() { editingExpense = null; showForm = true; }
   function openEditForm(expense: ExpenseListItem) { editingExpense = expense; showForm = true; }
-  function closeForm() { showForm = false; invalidateAll(); }
+  async function closeForm(shouldRefresh = false) {
+    showForm = false;
+    editingExpense = null;
+    if (shouldRefresh) {
+      await onDataChanged();
+    }
+  }
 
   async function handleDelete(expense: { id: string }) {
     const confirmed = await confirmDelete({

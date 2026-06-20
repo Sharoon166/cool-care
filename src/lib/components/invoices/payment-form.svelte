@@ -20,7 +20,7 @@
     invoiceId: string;
     maxAmount: number;
     action?: string;
-    onClose?: () => void;
+    onClose?: (shouldRefresh?: boolean) => void | Promise<void>;
   };
 
   let { invoiceId, maxAmount, action = '?/addPayment', onClose = () => {} }: Props = $props();
@@ -51,10 +51,10 @@
       loading = true;
       errors = {} as Record<string, string[]>;
       generalError = '';
-      return async ({ result, update }) => {
+      return async ({ result }) => {
         loading = false;
         if (result.type === 'success') {
-          onClose();
+          await onClose(true);
         } else if (result.type === 'failure') {
           // Handle validation errors (field-specific)
           if (result.data?.errors) {
@@ -67,7 +67,6 @@
         } else if (result.type === 'error') {
           generalError = 'An unexpected error occurred. Please try again.';
         }
-        await update();
       };
     }}
     class="space-y-6 pb-8"
@@ -185,7 +184,7 @@
 
     <!-- Form Actions -->
     <div class="flex justify-end gap-3 border-t pt-4">
-      <Button type="button" variant="outline" onclick={onClose}>Cancel</Button>
+      <Button type="button" variant="outline" onclick={() => void onClose()}>Cancel</Button>
       <Button type="submit" disabled={loading || !amount}>
         {#if loading}
           <Spinner />

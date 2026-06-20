@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { invalidateAll } from '$app/navigation';
+  import { invalidate } from '$app/navigation';
   import type { Customer } from '$lib/server/db/schema';
   import Button from '$lib/components/ui/button/button.svelte';
   import {
@@ -84,9 +84,16 @@ import { formatPKR } from '$lib/utils';
     showForm = true;
   }
 
-  function closeForm() {
+  async function refreshCustomers() {
+    await Promise.all([invalidate('app:customers:list'), invalidate('app:customers:stats')]);
+  }
+
+  async function closeForm(shouldRefresh = false) {
     showForm = false;
-    invalidateAll();
+    editingCustomer = null;
+    if (shouldRefresh) {
+      await refreshCustomers();
+    }
   }
 
   // Delete customer function
@@ -101,7 +108,7 @@ import { formatPKR } from '$lib/utils';
       });
 
       if (response.ok) {
-        await invalidateAll();
+        await refreshCustomers();
       }
     } catch (error) {
       console.error('Failed to delete customer:', error);
@@ -252,8 +259,10 @@ import { formatPKR } from '$lib/utils';
             <TableCell>
               <form method="POST" action="?/toggleActive" use:enhance={() => {
                 togglingCustomers[customer.id] = true;
-                return async ({ update }) => {
-                  await update();
+                return async ({ result }) => {
+                  if (result.type === 'success') {
+                    await refreshCustomers();
+                  }
                   togglingCustomers[customer.id] = false;
                 };
               }}>

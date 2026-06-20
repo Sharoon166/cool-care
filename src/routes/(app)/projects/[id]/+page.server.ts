@@ -81,8 +81,13 @@ async function getProjectPayments(projectId: string) {
     .orderBy(projectPayments.date);
 }
 
-export async function load({ params }) {
+export async function load({ params, depends }) {
   const projectId = params.id;
+
+  depends(`app:project:${projectId}`);
+  depends(`app:project:${projectId}:financials`);
+  depends(`app:project:${projectId}:expenses`);
+  depends(`app:project:${projectId}:payments`);
 
   return {
     project: getProject(projectId),

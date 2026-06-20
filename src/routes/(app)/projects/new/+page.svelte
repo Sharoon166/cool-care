@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { invalidateAll, goto } from '$app/navigation';
+  import { invalidate, goto } from '$app/navigation';
   import ProjectForm from '$lib/components/projects/project-form.svelte';
   import PageHeader from '$lib/components/page-header.svelte';
-  import Button from '$lib/components/ui/button/button.svelte';
 
   let { data } = $props();
 </script>
@@ -23,7 +22,16 @@
   <div class="overflow-hidden brutal-card rounded-3xl bg-card p-6">
     <ProjectForm
       customers={data.customers}
-      onClose={() => { invalidateAll(); goto('/projects'); }}
+      onClose={async (shouldRefresh = false) => {
+        if (shouldRefresh) {
+          await Promise.all([
+            invalidate('app:projects:list'),
+            invalidate('app:projects:stats'),
+            invalidate('app:projects:customers')
+          ]);
+        }
+        await goto('/projects');
+      }}
     />
   </div>
 </div>

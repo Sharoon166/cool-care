@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { invalidateAll } from '$app/navigation';
+  import { invalidate } from '$app/navigation';
   import Button from '$lib/components/ui/button/button.svelte';
   import { Badge } from '$lib/components/ui/badge/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -45,9 +45,20 @@
     showPaymentForm = true;
   }
 
-  function closePaymentForm() {
+  async function refreshInvoiceDetail() {
+    await Promise.all([
+      invalidate(`app:invoice:${invoice.id}`),
+      invalidate(`app:invoice:${invoice.id}:payments`),
+      invalidate('app:invoices:list'),
+      invalidate('app:invoices:stats')
+    ]);
+  }
+
+  async function closePaymentForm(shouldRefresh = false) {
     showPaymentForm = false;
-    invalidateAll();
+    if (shouldRefresh) {
+      await refreshInvoiceDetail();
+    }
   }
 
   let deletingPaymentId = $state<string | null>(null);
@@ -66,7 +77,7 @@
 
       if (response.ok) {
         toast.success('Payment deleted successfully');
-        await invalidateAll();
+        await refreshInvoiceDetail();
       } else {
         toast.error('Failed to delete payment');
       }

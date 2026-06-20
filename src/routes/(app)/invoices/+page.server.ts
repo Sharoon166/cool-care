@@ -7,7 +7,10 @@ import { addPayment, deletePayment, calculateInvoiceStatus } from '$lib/server/p
 import { createId } from '@paralleldrive/cuid2';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ depends }) => {
+  depends('app:invoices:list');
+  depends('app:invoices:stats');
+
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);

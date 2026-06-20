@@ -5,7 +5,10 @@ import { fail } from '@sveltejs/kit';
 import { eq, isNull, desc, sql, and, gte, lt } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ depends }) => {
+  depends('app:customers:list');
+  depends('app:customers:stats');
+
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
