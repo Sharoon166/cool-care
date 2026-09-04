@@ -36,7 +36,7 @@
           <div class="h-35 brutal-shadow-md animate-pulse rounded-[20px] brutal-border bg-muted"></div>
         </div>
       {:then metrics}
-        <KpiGrid {metrics} databaseError={data.databaseError} />
+        <KpiGrid {metrics} />
       {:catch error}
         <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
           <p class="text-sm text-destructive">Failed to load metrics</p>
@@ -101,7 +101,7 @@
   {#await data.chartData}
     <RevenueChartSkeleton />
   {:then chartData}
-    <RevenueChart {chartData} databaseError={data.databaseError} />
+    <RevenueChart {chartData} />
   {:catch error}
     <div class="rounded-3xl brutal-border bg-destructive/10 p-8 text-center">
       <p class="text-sm text-destructive">Failed to load revenue chart</p>

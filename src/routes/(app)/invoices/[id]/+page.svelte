@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { invalidate } from '$app/navigation';
+  import { invalidate, goto } from '$app/navigation';
   import Button from '$lib/components/ui/button/button.svelte';
   import { Badge } from '$lib/components/ui/badge/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -140,11 +140,11 @@
 
         // Check if we got data back
         if (result && result.invoiceId) {
-          window.location.href = `/invoices/${result.invoiceId}`;
+          await goto(`/invoices/${result.invoiceId}`);
         } else {
           console.error('Unexpected response format:', result);
           toast.success('Conversion completed! Redirecting to invoices list.');
-          window.location.href = '/invoices';
+          await goto('/invoices');
         }
       } else {
         const errorText = await response.text();

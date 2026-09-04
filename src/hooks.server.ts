@@ -8,7 +8,20 @@ const publicRoutes = ['/login', '/api/auth', '/info'];
 const protectedRoutes = ['/dashboard', '/customers', '/invoices', '/users', '/settings', '/projects'];
 
 export const handle: Handle = async ({ event, resolve }) => {
-  // Get session from better-auth
+  const { pathname } = event.url;
+
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route + '/')
+  );
+
+  // Skip session check for public routes
+  if (isPublicRoute) {
+    event.locals.session = null;
+    event.locals.user = null;
+    return resolve(event);
+  }
+
+  // Get session from better-auth (with cookie caching, avoids DB hit)
   const session = await auth.api.getSession({
     headers: event.request.headers
   });
@@ -17,13 +30,9 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.session = session?.session || null;
   event.locals.user = session?.user || null;
 
-  const { pathname } = event.url;
-
-  // Check if route is public (exact match or sub-path)
-  const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
-
-  // Check if route is protected (exact match or sub-path)
-  const isProtectedRoute = protectedRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
+  const isProtectedRoute = protectedRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route + '/')
+  );
 
   // If it's a protected route and user is not authenticated, redirect to login
   if (isProtectedRoute && !session) {

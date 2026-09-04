@@ -3,30 +3,30 @@ import { invoices, customers } from '$lib/server/db/schema';
 import { error } from '@sveltejs/kit';
 import { eq, isNull, and } from 'drizzle-orm';
 import PDFDocument from 'pdfkit';
-import QRCode from 'qrcode';
+// import QRCode from 'qrcode';
 import { COMPANY_INFO, PAYMENT_INFO } from '$lib/constants';
-import path from 'path';
+// import path from 'path';
 import { LatoRegular, LatoItalic, MontserratBold, MontserratExtraBold } from '$lib/fonts';
 import type { RequestHandler } from './$types';
 import { formatDate, formatPKR } from '$lib/utils';
 
-/* ---------------- HEXAGON HELPER ---------------- */
-function drawHexagon(doc: PDFKit.PDFDocument, cx: number, cy: number, radius: number) {
-  const sides = 6;
-  const rotation = -Math.PI / 6;
-  const step = (Math.PI * 2) / sides;
-  for (let i = 0; i < sides; i++) {
-    const angle = rotation + step * i;
-    const x = cx + radius * Math.cos(angle);
-    const y = cy + radius * Math.sin(angle);
-    if (i == 0) {
-      doc.moveTo(x, y);
-    } else {
-      doc.lineTo(x, y);
-    }
-  }
-  doc.closePath();
-}
+/* ---------------- HEXAGON HELPER (unused - QR code removed) ---------------- */
+// function drawHexagon(doc: PDFKit.PDFDocument, cx: number, cy: number, radius: number) {
+//   const sides = 6;
+//   const rotation = -Math.PI / 6;
+//   const step = (Math.PI * 2) / sides;
+//   for (let i = 0; i < sides; i++) {
+//     const angle = rotation + step * i;
+//     const x = cx + radius * Math.cos(angle);
+//     const y = cy + radius * Math.sin(angle);
+//     if (i == 0) {
+//       doc.moveTo(x, y);
+//     } else {
+//       doc.lineTo(x, y);
+//     }
+//   }
+//   doc.closePath();
+// }
 
 interface InvoiceItem {
   id: string;
@@ -91,15 +91,26 @@ export const GET: RequestHandler = async ({ params, url }) => {
 
     const drawPageDecorations = () => {
       doc.rect(0, 0, pageWidth, 15).fill('#1a2b2b'); // Top band at absolute 0
-      doc.rect(0, pageHeight - 40, pageWidth, 40).fill('#1a2b2b'); // Bottom band
+      doc.rect(0, pageHeight - 55, pageWidth, 55).fill('#1a2b2b'); // Bottom band
+
+      // Payment details line (centered as single line)
+      const jcText = `JazzCash: ${PAYMENT_INFO.jazzCash.accountNumber} (${PAYMENT_INFO.jazzCash.accountTitle})`;
+      const epText = `Easypaisa: ${PAYMENT_INFO.easyPaisa.accountNumber} (${PAYMENT_INFO.easyPaisa.accountTitle})`;
+      doc.font('L-Reg').fontSize(7).fillColor('#fff');
+      doc.text(`PAYMENT DETAILS    ${jcText}  |  ${epText}`, 0, pageHeight - 48, {
+        width: pageWidth,
+        align: 'center'
+      });
+
+      // Address line (centered below)
       doc
         .font('L-Reg')
-        .fontSize(8)
-        .fillColor('#fff')
+        .fontSize(7)
+        .fillColor('#ccc')
         .text(
           `${COMPANY_INFO.address}  |  ${COMPANY_INFO.phones.join(', ')}`.toUpperCase(),
           0,
-          pageHeight - 25,
+          pageHeight - 30,
           { align: 'center', width: pageWidth }
         );
       doc.fillColor('#000');
@@ -196,7 +207,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
       const rowHeight = Math.max(descHeight + notesHeight + 10, 25) + 10;
 
       // Check if we need a new page
-      if (y + rowHeight > pageHeight - 120) {
+      if (y + rowHeight > pageHeight - 200) {
         doc.addPage();
         drawPageDecorations();
         y = 50;
@@ -276,28 +287,19 @@ export const GET: RequestHandler = async ({ params, url }) => {
       y += rowHeight;
     });
 
-    /* ---------- SUMMARY SECTION ---------- */
-    // Calculate actual space needed for summary section
-    const summaryRows = [
-      'SUBTOTAL',
-      ...(Number(invoice.discountAmount) > 0 ? ['DISCOUNT'] : []),
-      ...(Number(invoice.previous) > 0 ? ['PREVIOUS BAL.'] : []),
-      'TOTAL PAYABLE',
-      ...(Number(invoice.totalPaid) > 0 ? ['TOTAL PAID'] : []),
-      'BALANCE DUE'
-    ];
-    const summaryHeight = summaryRows.length * 22 + 60; // 22px per row + spacing
-    const FOOTER_SPACE = 175; // Space for payment details and QR code
-    const REQUIRED_SPACE = summaryHeight + FOOTER_SPACE;
+    /* ---------- SUMMARY + PAYMENT DETAILS ---------- */
+    const summaryRowCount = 3 + (Number(invoice.discountAmount) > 0 ? 1 : 0) +
+      (Number(invoice.previous) > 0 ? 1 : 0) + (Number(invoice.totalPaid) > 0 ? 1 : 0);
+    const summaryBlockHeight = summaryRowCount * 22 + 30;
+    const paymentBlockHeight = invoice.notes ? 30 : 0;
+    const totalNeeded = summaryBlockHeight + paymentBlockHeight;
 
-    // Only create new page if we really don't have enough space
-    if (y + REQUIRED_SPACE > pageHeight - 40) {
+    if (y + totalNeeded > pageHeight - 55) {
       doc.addPage();
       drawPageDecorations();
       y = 50;
     }
 
-    y += 20; // Reduced spacing to keep summary closer to table
     const sumX = 340;
     const labelW = 100;
     const valueW = 105;
@@ -313,8 +315,10 @@ export const GET: RequestHandler = async ({ params, url }) => {
       doc.text(label, sumX, y, { width: labelW, align: 'right' });
       doc.text(value, sumX + labelW + 5, y, { width: valueW, align: 'right' });
       y += 22;
-      if (isAccent) doc.fillColor('#000'); // Reset color after accent row
+      if (isAccent) doc.fillColor('#000');
     };
+
+    y += 20;
 
     drawSumRow('SUBTOTAL', Number(invoice.subtotal).toLocaleString());
     if (Number(invoice.discountAmount) > 0) {
@@ -346,81 +350,38 @@ export const GET: RequestHandler = async ({ params, url }) => {
     y += 5;
     drawSumRow('BALANCE DUE', formatPKR.standard(invoice.balance), true, true);
 
-    /* ---------- FINAL FOOTER INFO ---------- */
-    const qrBuffer = await QRCode.toBuffer(`${url.origin}/info/${invoice.customerId}`, {
-      margin: 1,
-      errorCorrectionLevel: "H"
-    });
-    const fy = pageHeight - 175;
-    doc
-      .strokeColor('#eee')
-      .lineWidth(1)
-      .moveTo(margin, fy - 10)
-      .lineTo(pageWidth - margin, fy - 10)
-      .stroke();
+    // Payment details are now in the footer band (drawPageDecorations)
 
-    // Payment Details Section (Left Side)
-    doc.fillColor('#1a2b2b').font('M-Bold').fontSize(9).text('PAYMENT DETAILS', margin, fy);
-    doc.font('L-Reg').fontSize(9).fillColor('#555');
-    doc.text(
-      `JazzCash: ${PAYMENT_INFO.jazzCash.accountNumber} (${PAYMENT_INFO.jazzCash.accountTitle})`,
-      margin,
-      fy + 18
-    );
-    doc.text(
-      `Easypaisa: ${PAYMENT_INFO.easyPaisa.accountNumber} (${PAYMENT_INFO.easyPaisa.accountTitle})`,
-      margin,
-      fy + 32
-    );
-
-    // Notes Section (Left Side, below payment details)
     if (invoice.notes) {
-      doc
-        .fillColor('#1a2b2b')
-        .font('M-Bold')
-        .text('REMARKS', margin, fy + 55);
-      doc
-        .font('L-Italic')
-        .fillColor('#666')
-        .text(invoice.notes, margin, fy + 68, { width: 280 });
+      y += 20;
+      doc.fillColor('#1a2b2b').font('M-Bold').fontSize(8).text('REMARKS', margin, y);
+      y += 12;
+      doc.font('L-Italic').fillColor('#666').text(invoice.notes, margin, y, { width: 280 });
     }
 
-    // QR Code Section (Right Side) - positioned to avoid overlap
-    const qrSize = 85;
-    const qrx = pageWidth - margin - qrSize;
-    const qry = fy + 10; // Moved down slightly to avoid overlap
-
-    // QR Code background for better visibility
-    doc
-      .rect(qrx - 5, qry - 5, qrSize + 10, qrSize + 10)
-      .fill('#f8f8f8')
-      .stroke('#ddd');
-
-    // QR Code
-    doc.image(qrBuffer, qrx, qry, { width: qrSize });
-
-    // Logo inside QR with better positioning
-    const cx = qrx + qrSize / 2;
-    const cy = qry + qrSize / 2;
-    doc.save().fillColor('#fff');
-    drawHexagon(doc, cx, cy, 18);
-    doc.fill().restore();
-    const logoPath = path.resolve('static/logo.png');
-    try {
-      doc.image(logoPath, cx - 12, cy - 12, { width: 24 });
-    } catch {
-      console.log('FAILED TO ADD HEXAGON LOGO');
-    }
-
-    // QR Code label
-    doc
-      .fillColor('#666')
-      .font('L-Reg')
-      .fontSize(8)
-      .text('Scan for Customer Portal', qrx - 10, qry + qrSize + 8, {
-        width: qrSize + 20,
-        align: 'center'
-      });
+    // QR Code (commented out - payment details now in footer)
+    // const qrBuffer = await QRCode.toBuffer(`${url.origin}/info/${invoice.customerId}`, {
+    //   margin: 1,
+    //   errorCorrectionLevel: "H"
+    // });
+    // const qrSize = 85;
+    // const qrx = pageWidth - margin - qrSize;
+    // const qry = fy + 10;
+    // doc.rect(qrx - 5, qry - 5, qrSize + 10, qrSize + 10).fill('#f8f8f8').stroke('#ddd');
+    // doc.image(qrBuffer, qrx, qry, { width: qrSize });
+    // const cx = qrx + qrSize / 2;
+    // const cy = qry + qrSize / 2;
+    // doc.save().fillColor('#fff');
+    // drawHexagon(doc, cx, cy, 18);
+    // doc.fill().restore();
+    // const logoPath = path.resolve('static/logo.png');
+    // try {
+    //   doc.image(logoPath, cx - 12, cy - 12, { width: 24 });
+    // } catch {
+    //   console.log('FAILED TO ADD HEXAGON LOGO');
+    // }
+    // doc.fillColor('#666').font('L-Reg').fontSize(8)
+    //   .text('Scan for Customer Portal', qrx - 10, qry + qrSize + 8, { width: qrSize + 20, align: 'center' });
 
     doc.end();
     const chunks: Buffer[] = [];

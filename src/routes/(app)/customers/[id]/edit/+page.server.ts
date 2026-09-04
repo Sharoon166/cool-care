@@ -28,35 +28,6 @@ export async function load({ params }) {
       throw error(404, 'Customer not found');
     }
 
-    // Database connection check
-    try {
-      await db.execute(sql`SELECT 1`);
-    } catch (dbErr) {
-      console.error('Database connection failed:', dbErr);
-      return {
-        databaseError: true,
-        customer: {
-          id: customerId,
-          name: 'Sample Customer',
-          email: 'customer@example.com',
-          phone: '+92 300 1234567',
-          alternatePhone: null,
-          address: '123 Business Street, Karachi',
-          city: 'Karachi',
-          postalCode: '75500',
-          companyName: null,
-          gstNumber: null,
-          isActive: true,
-          priority: 'normal' as const,
-          notes: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          createdBy: null,
-          deletedAt: null
-        }
-      };
-    }
-
     // Get customer details
     const [customer] = await db
       .select()

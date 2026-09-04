@@ -7,6 +7,7 @@
   import { authClient } from '../auth-client';
   import { toast } from 'svelte-sonner';
   import { page } from '$app/state';
+  import { goto } from '$app/navigation';
 
   let user = page.data?.user ?? { name: '', email: '', avatar: '' };
 
@@ -16,7 +17,7 @@
     try {
       await authClient.signOut();
       toast.success('Logged out successfully');
-      window.location.href = '/login';
+      await goto('/login');
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Failed to logout');

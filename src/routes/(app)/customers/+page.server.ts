@@ -13,79 +13,65 @@ export const load: PageServerLoad = async ({ depends }) => {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  // Get all active customers (not soft-deleted)
-  const allCustomers = await db
-    .select()
-    .from(customers)
-    .where(isNull(customers.deletedAt))
-    .orderBy(desc(customers.createdAt));
-
-  // Lifetime Revenue
-  const [revenueResult] = await db
-    .select({
-      total: sql`COALESCE(SUM(${invoices.total}), 0)`
-    })
-    .from(invoices)
-    .where(
-      and(isNull(invoices.deletedAt), eq(invoices.type, 'invoice'))
-    );
-
-  const totalRevenue = Number(revenueResult?.total || 0);
-
-  // Customers with outstanding balances
-  const [outstandingResult] = await db
-    .select({
-      count: sql`COUNT(DISTINCT ${invoices.customerId})`
-    })
-    .from(invoices)
-    .where(
-      and(
-        isNull(invoices.deletedAt),
-        eq(invoices.type, 'invoice'),
-        sql`${invoices.status} IN ('sent', 'partial', 'overdue')`,
-        sql`CAST(${invoices.balance} AS numeric) > 0`
-      )
-    );
-
-  const needCollectionCount = Number(outstandingResult?.count || 0);
-
-  // Repeat customers (2+ invoices)
-  const [repeatResult] = await db
-    .select({
-      count: sql`COUNT(*)`
-    })
-    .from(
+  // Run all queries in parallel
+  const [allCustomers, [revenueResult], [outstandingResult], [repeatResult], [newResult]] =
+    await Promise.all([
       db
-        .select({ customerId: invoices.customerId })
+        .select()
+        .from(customers)
+        .where(isNull(customers.deletedAt))
+        .orderBy(desc(customers.createdAt)),
+      db
+        .select({
+          total: sql`COALESCE(SUM(${invoices.total}), 0)`
+        })
+        .from(invoices)
+        .where(and(isNull(invoices.deletedAt), eq(invoices.type, 'invoice'))),
+      db
+        .select({
+          count: sql`COUNT(DISTINCT ${invoices.customerId})`
+        })
         .from(invoices)
         .where(
           and(
             isNull(invoices.deletedAt),
             eq(invoices.type, 'invoice'),
-            sql`${invoices.customerId} IS NOT NULL`
+            sql`${invoices.status} IN ('sent', 'partial', 'overdue')`,
+            sql`CAST(${invoices.balance} AS numeric) > 0`
+          )
+        ),
+      db
+        .select({ count: sql`COUNT(*)` })
+        .from(
+          db
+            .select({ customerId: invoices.customerId })
+            .from(invoices)
+            .where(
+              and(
+                isNull(invoices.deletedAt),
+                eq(invoices.type, 'invoice'),
+                sql`${invoices.customerId} IS NOT NULL`
+              )
+            )
+            .groupBy(invoices.customerId)
+            .having(sql`COUNT(*) >= 2`)
+            .as('repeat_customers')
+        ),
+      db
+        .select({ count: sql`COUNT(*)` })
+        .from(customers)
+        .where(
+          and(
+            isNull(customers.deletedAt),
+            gte(customers.createdAt, monthStart),
+            lt(customers.createdAt, nextMonthStart)
           )
         )
-        .groupBy(invoices.customerId)
-        .having(sql`COUNT(*) >= 2`)
-        .as('repeat_customers')
-    );
+    ]);
 
+  const totalRevenue = Number(revenueResult?.total || 0);
+  const needCollectionCount = Number(outstandingResult?.count || 0);
   const repeatCustomers = Number(repeatResult?.count || 0);
-
-  // New this month
-  const [newResult] = await db
-    .select({
-      count: sql`COUNT(*)`
-    })
-    .from(customers)
-    .where(
-      and(
-        isNull(customers.deletedAt),
-        gte(customers.createdAt, monthStart),
-        lt(customers.createdAt, nextMonthStart)
-      )
-    );
-
   const newThisMonth = Number(newResult?.count || 0);
 
   const stats = {

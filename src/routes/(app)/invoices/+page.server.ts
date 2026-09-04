@@ -15,41 +15,41 @@ export const load: PageServerLoad = async ({ depends }) => {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  // Get all active invoices (not soft-deleted) with customer info
-  const allInvoices = await db
-    .select({
-      id: invoices.id,
-      type: invoices.type,
-      invoiceNumber: invoices.invoiceNumber,
-      invoiceDate: invoices.invoiceDate,
-      customerId: invoices.customerId,
-      customerName: customers.name,
-      customerCompany: customers.companyName,
-      total: invoices.total,
-      balance: invoices.balance,
-      totalPaid: invoices.totalPaid,
-      status: invoices.status,
-      createdAt: invoices.createdAt
-    })
-    .from(invoices)
-    .leftJoin(customers, eq(invoices.customerId, customers.id))
-    .where(isNull(invoices.deletedAt))
-    .orderBy(desc(invoices.createdAt));
-
-  // Collected this month from payments
-  const [collectedResult] = await db
-    .select({
-      total: sql`COALESCE(SUM(${payments.amount}), 0)`
-    })
-    .from(payments)
-    .innerJoin(invoices, eq(payments.invoiceId, invoices.id))
-    .where(
-      and(
-        gte(payments.paymentDate, monthStart),
-        lt(payments.paymentDate, nextMonthStart),
-        isNull(invoices.deletedAt)
+  // Run both queries in parallel
+  const [allInvoices, [collectedResult]] = await Promise.all([
+    db
+      .select({
+        id: invoices.id,
+        type: invoices.type,
+        invoiceNumber: invoices.invoiceNumber,
+        invoiceDate: invoices.invoiceDate,
+        customerId: invoices.customerId,
+        customerName: customers.name,
+        customerCompany: customers.companyName,
+        total: invoices.total,
+        balance: invoices.balance,
+        totalPaid: invoices.totalPaid,
+        status: invoices.status,
+        createdAt: invoices.createdAt
+      })
+      .from(invoices)
+      .leftJoin(customers, eq(invoices.customerId, customers.id))
+      .where(isNull(invoices.deletedAt))
+      .orderBy(desc(invoices.createdAt)),
+    db
+      .select({
+        total: sql`COALESCE(SUM(${payments.amount}), 0)`
+      })
+      .from(payments)
+      .innerJoin(invoices, eq(payments.invoiceId, invoices.id))
+      .where(
+        and(
+          gte(payments.paymentDate, monthStart),
+          lt(payments.paymentDate, nextMonthStart),
+          isNull(invoices.deletedAt)
+        )
       )
-    );
+  ]);
 
   const collectedThisMonth = Number(collectedResult?.total || 0);
 

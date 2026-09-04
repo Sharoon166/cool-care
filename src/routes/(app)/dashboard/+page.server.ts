@@ -525,44 +525,8 @@ async function getCustomersWithOutstanding() {
 }
 
 export async function load({ url }) {
-  // Check database connectivity (critical blocking check)
-  let databaseError = false;
-  try {
-    await db.execute(sql`SELECT 1`);
-  } catch (dbErr) {
-    console.error('Database connection failed:', dbErr);
-    databaseError = true;
-  }
-
-  // If database is down, return error state immediately
-  if (databaseError) {
-    return {
-      databaseError: true,
-      metrics: Promise.resolve({
-        collectedRevenue: 0,
-        collectedChange: 0,
-        outstandingAmount: 0,
-        outstandingCount: 0,
-        overdueAmount: 0,
-        overdueCount: 0,
-        quoteConversionRate: 0,
-        conversionRateChange: 0,
-        totalQuotes: 0,
-        convertedQuotes: 0
-      }),
-      chartData: Promise.resolve([]),
-      invoicesNeedingAttention: Promise.resolve([]),
-      customersWithOutstanding: Promise.resolve([]),
-      recentInvoices: Promise.resolve([]),
-      paymentMethodBreakdown: Promise.resolve([]),
-      timeRange: (url.searchParams.get('timeRange') as TimeRange) || '7d',
-      period: url.searchParams.get('period') || 'last-3-months'
-    };
-  }
-
-  // Return unresolved promises for streaming
+  // Return unresolved promises for streaming (no blocking connectivity check)
   return {
-    databaseError: false,
     metrics: getMetrics(url),
     chartData: getChartData(url),
     invoicesNeedingAttention: getInvoicesNeedingAttention(),

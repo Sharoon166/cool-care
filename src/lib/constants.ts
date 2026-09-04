@@ -26,7 +26,7 @@ export const PAYMENT_INFO = {
     accountTitle: 'Allah Ditta Masih'
   },
   easyPaisa: {
-    accountNumber: '0315-5417036',
-    accountTitle: 'Sharoon Shalam'
+    accountNumber: '0336-3097147',
+    accountTitle: 'Allah Ditta Masih'
   }
 } as const;

@@ -232,48 +232,8 @@ export async function load({ params }) {
     throw error(404, 'Customer not found');
   }
 
-  // Database connection check (critical blocking check)
-  let databaseError = false;
-  try {
-    await db.execute(sql`SELECT 1`);
-  } catch (dbErr) {
-    console.error('Database connection failed:', dbErr);
-    databaseError = true;
-  }
-
-  // If database is down, return error state immediately
-  if (databaseError) {
-    return {
-      databaseError: true,
-      customer: Promise.resolve({
-        id: customerId,
-        name: 'Sample Customer',
-        email: 'customer@example.com',
-        phone: '+92 300 1234567',
-        address: '123 Business Street, Karachi',
-        isActive: true,
-        createdAt: new Date()
-      }),
-      metrics: Promise.resolve({
-        totalInvoices: 0,
-        totalQuotations: 0,
-        totalRevenue: 0,
-        totalPaid: 0,
-        totalOutstanding: 0,
-        avgInvoiceValue: 0,
-        lastPaymentDate: null,
-        customerSince: new Date()
-      }),
-      invoices: Promise.resolve([]),
-      quotations: Promise.resolve([]),
-      payments: Promise.resolve([]),
-      projects: Promise.resolve([])
-    };
-  }
-
-  // Return unresolved promises for streaming
+  // Return unresolved promises for streaming (no blocking connectivity check)
   return {
-    databaseError: false,
     customer: getCustomer(customerId),
     metrics: getCustomerMetrics(customerId),
     invoices: getCustomerInvoices(customerId),
