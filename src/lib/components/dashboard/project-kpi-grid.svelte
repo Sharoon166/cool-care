@@ -49,7 +49,7 @@
       <ChartPieIcon size={16} />
     </div>
     <span class="text-[10px] font-semibold tracking-wider uppercase opacity-70">Margin</span>
-    <span class="mt-1 font-space text-xl font-extrabold tracking-tight sm:text-2xl">
+    <span class="mt-1 font-space text-xl font-bold tracking-tight sm:text-2xl">
       {#if databaseError || !marginHasData}
         --
       {:else}
@@ -73,7 +73,7 @@
       <FlameIcon size={16} />
     </div>
     <span class="text-[10px] font-semibold tracking-wider uppercase opacity-70">Budget Burn</span>
-    <span class="mt-1 font-space text-xl font-extrabold tracking-tight sm:text-2xl">
+    <span class="mt-1 font-space text-xl font-bold tracking-tight sm:text-2xl">
       {#if databaseError}
         --
       {:else if metrics.activeProjects === 0}
@@ -105,7 +105,7 @@
       <BriefcaseIcon size={16} />
     </div>
     <span class="text-[10px] font-semibold tracking-wider uppercase opacity-70">Active</span>
-    <span class="mt-1 font-space text-xl font-extrabold tracking-tight sm:text-2xl">
+    <span class="mt-1 font-space text-xl font-bold tracking-tight sm:text-2xl">
       {#if databaseError}
         --
       {:else}

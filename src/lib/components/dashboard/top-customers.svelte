@@ -48,7 +48,7 @@
               </div>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="truncate text-sm font-extrabold">
+              <p class="truncate text-sm font-bold">
                 {customer.name}
               </p>
               <div class="flex items-center gap-2 text-xs font-bold text-muted-foreground/90">
@@ -59,7 +59,7 @@
           </div>
           <div class="flex items-center gap-2">
             <div class="text-right">
-              <div class="font-space text-sm font-extrabold">
+              <div class="font-space text-sm font-bold">
                 {formatCurrency(customer.totalRevenue)}
               </div>
             </div>

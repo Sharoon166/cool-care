@@ -35,15 +35,15 @@
 <div class="grid grid-cols-2 gap-4">
   <!-- Outstanding Amount (Critical!) -->
   <div
-    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#FFE285] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
+    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#FFE285] p-6 text-center brutal-shadow text-black"
   >
     <div
       class="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-brutal bg-white/20"
     >
       <Coins size={16} />
     </div>
-    <span class="text-[10px] font-semibold tracking-wider uppercase opacity-70">Outstanding</span>
-    <span class="mt-1 font-space text-xl font-extrabold tracking-tight sm:text-2xl">
+    <span class="text-xs font-semibold tracking-wider uppercase opacity-70">Outstanding</span>
+    <span class="mt-1 font-space text-xl font-bold tracking-tight sm:text-2xl">
       {#if databaseError}
         --
       {:else}
@@ -51,7 +51,7 @@
       {/if}
     </span>
     {#if !databaseError && metrics.outstandingCount > 0}
-      <span class="mt-0.5 text-[10px] font-semibold text-black/60">
+      <span class="mt-0.5 text-xs font-semibold text-black/60">
         {metrics.outstandingCount} unpaid
       </span>
     {/if}
@@ -59,15 +59,15 @@
 
   <!-- Overdue Invoices (Urgent!) -->
   <div
-    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#ff8a8a] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
+    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#ff8a8a] p-6 text-center brutal-shadow text-black"
   >
     <div
       class="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-brutal bg-white/20"
     >
       <AlertCircle size={16} />
     </div>
-    <span class="text-[10px] font-semibold tracking-wider uppercase opacity-70">Overdue</span>
-    <span class="mt-1 font-space text-xl font-extrabold tracking-tight sm:text-2xl">
+    <span class="text-xs font-semibold tracking-wider uppercase opacity-70">Overdue</span>
+    <span class="mt-1 font-space text-xl font-bold tracking-tight sm:text-2xl">
       {#if databaseError}
         --
       {:else}
@@ -75,11 +75,11 @@
       {/if}
     </span>
     {#if !databaseError && metrics.overdueCount > 0}
-      <span class="mt-0.5 text-[10px] font-semibold text-black/60">
+      <span class="mt-0.5 text-xs font-semibold text-black/60">
         {metrics.overdueCount} overdue
       </span>
     {:else if !databaseError}
-      <span class="mt-0.5 text-[10px] font-semibold text-black/60">
+      <span class="mt-0.5 text-xs font-semibold text-black/60">
         All caught up!
       </span>
     {/if}
@@ -87,15 +87,15 @@
 
   <!-- Collected This Period -->
   <div
-    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#86efac] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
+    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#86efac] p-6 text-center brutal-shadow text-black"
   >
     <div
       class="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-brutal bg-white/20"
     >
       <TrendingUp size={16} />
     </div>
-    <span class="text-[10px] font-semibold tracking-wider uppercase opacity-70">Collected</span>
-    <span class="mt-1 font-space text-xl font-extrabold tracking-tight sm:text-2xl">
+    <span class="text-xs font-semibold tracking-wider uppercase opacity-70">Collected</span>
+    <span class="mt-1 font-space text-xl font-bold tracking-tight sm:text-2xl">
       {#if databaseError}
         --
       {:else}
@@ -109,7 +109,7 @@
         {:else if metrics.collectedChange < 0}
           <TrendingDown size={10} class="text-red-700" />
         {/if}
-        <span class="text-[10px] font-semibold {metrics.collectedChange > 0 ? 'text-green-700' : metrics.collectedChange < 0 ? 'text-red-700' : 'text-black/60'}">
+        <span class="text-xs font-semibold {metrics.collectedChange > 0 ? 'text-green-700' : metrics.collectedChange < 0 ? 'text-red-700' : 'text-black/60'}">
           {formatChange(metrics.collectedChange)} vs last period
         </span>
       </div>
@@ -118,15 +118,15 @@
 
   <!-- Quote Conversion Rate -->
   <div
-    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#B4B0FF] p-6 text-center brutal-shadow transition-all hover:-translate-x-0.5 hover:-translate-y-0.5"
+    class="flex flex-col items-center justify-center rounded-[20px] brutal-border brutal-shadow-md bg-[#B4B0FF] p-6 text-center brutal-shadow text-black"
   >
     <div
       class="mb-2 flex h-8 w-8 items-center justify-center rounded-lg border border-brutal bg-white/20"
     >
       <FileCheck size={16} />
     </div>
-    <span class="text-[10px] font-semibold tracking-wider uppercase opacity-70">Quote Rate</span>
-    <span class="mt-1 font-space text-xl font-extrabold tracking-tight sm:text-2xl">
+    <span class="text-xs font-semibold tracking-wider uppercase opacity-70">Quote Rate</span>
+    <span class="mt-1 font-space text-xl font-bold tracking-tight sm:text-2xl">
       {#if databaseError}
         --
       {:else if metrics.totalQuotes === 0}
@@ -142,12 +142,12 @@
         {:else if metrics.conversionRateChange < 0}
           <TrendingDown size={10} class="text-red-700" />
         {/if}
-        <span class="text-[10px] font-semibold {metrics.conversionRateChange > 0 ? 'text-green-700' : metrics.conversionRateChange < 0 ? 'text-red-700' : 'text-black/60'}">
+        <span class="text-xs font-semibold {metrics.conversionRateChange > 0 ? 'text-green-700' : metrics.conversionRateChange < 0 ? 'text-red-700' : 'text-black/60'}">
           {formatChange(metrics.conversionRateChange)} vs last period
         </span>
       </div>
     {:else if !databaseError}
-      <span class="mt-0.5 text-[10px] font-semibold text-black/60">
+      <span class="mt-0.5 text-xs font-semibold text-black/60">
         No quotes yet
       </span>
     {/if}

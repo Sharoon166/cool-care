@@ -177,6 +177,64 @@
   <title>Invoices - Cool Care</title>
 </svelte:head>
 
+{#snippet statusButton(invoice: any)}
+  <button
+    type="button"
+    onclick={() => openStatusDialog(invoice)}
+    disabled={invoice.status == 'converted'}
+    class={[
+      'inline-flex cursor-pointer items-center gap-1 rounded-full border border-brutal px-2.5 py-0.5 font-space text-xs font-bold capitalize shadow-[1.5px_1.5px_0px_var(--color-brutal)] transition hover:opacity-80',
+      {
+        'bg-[#86efac]': invoice.status == 'paid',
+        'bg-[#c084fc]': invoice.status == 'sent',
+        'bg-[#ff8a8a]': invoice.status == 'cancelled',
+        'cursor-not-allowed bg-[#fde047]': invoice.status == 'converted'
+      }
+    ]}
+  >
+    {invoice.status}
+  </button>
+{/snippet}
+
+{#snippet typeBadge(invoice: any)}
+  <Badge
+    variant={getTypeBadgeVariant(invoice.type)}
+    class="border border-brutal px-2.5 py-0.5 font-space text-xs font-bold capitalize shadow-[1.5px_1.5px_0px_var(--color-brutal)]"
+  >
+    {invoice.type}
+  </Badge>
+{/snippet}
+
+{#snippet emptyState()}
+  {#if searchQuery || filterType !== 'all' || filterStatus !== 'all'}
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <SearchOff />
+        </EmptyMedia>
+        <EmptyTitle>No Such Invoices</EmptyTitle>
+        <EmptyDescription>No invoices found matching your filters.</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  {:else}
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Receipt />
+        </EmptyMedia>
+        <EmptyTitle>No Invoices Yet</EmptyTitle>
+        <EmptyDescription>You haven't created any invoices yet.</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <div class="flex flex-wrap gap-2">
+          <Button href="/invoices/new">Create Invoice</Button>
+          <Button variant="outline" href="/invoices/new?type=quotation">Create Quotation</Button>
+        </div>
+      </EmptyContent>
+    </Empty>
+  {/if}
+{/snippet}
+
 <div>
   <!-- Header -->
   <div class="mb-8 space-y-6">
@@ -194,7 +252,7 @@
     </PageHeader>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid md:grid-cols-2 gap-4 lg:grid-cols-4">
       <StatCard
         bg="#fbbf24"
         label="Outstanding AR"
@@ -267,8 +325,8 @@
     </div>
   </div>
 
-  <!-- Invoice Table -->
-  <div class="overflow-hidden brutal-card rounded-3xl bg-card p-1">
+  <!-- Desktop / tablet: table -->
+  <div class="hidden overflow-hidden brutal-card rounded-3xl bg-card p-1 md:block">
     <Table>
       <TableHeader>
         <TableRow>
@@ -285,19 +343,14 @@
       <TableBody>
         {#each filteredInvoices as invoice (invoice.id)}
           <TableRow>
-            <TableCell class="font-space text-sm font-extrabold tracking-tight whitespace-nowrap">
+            <TableCell class="font-space text-sm font-bold tracking-tight whitespace-nowrap">
               {invoice.invoiceNumber}
             </TableCell>
             <TableCell class="hidden lg:table-cell">
-              <Badge
-                variant={getTypeBadgeVariant(invoice.type)}
-                class="border border-brutal px-2.5 py-0.5 font-space text-xs font-bold capitalize shadow-[1.5px_1.5px_0px_var(--color-brutal)]"
-              >
-                {invoice.type}
-              </Badge>
+              {@render typeBadge(invoice)}
             </TableCell>
             <TableCell class="max-w-[160px] min-w-0">
-              <div class="truncate text-sm font-extrabold">{invoice.customerName}</div>
+              <div class="truncate text-sm font-bold">{invoice.customerName}</div>
               {#if invoice.customerCompany}
                 <div class="truncate text-xs font-semibold text-muted-foreground">
                   {invoice.customerCompany}
@@ -307,12 +360,10 @@
             <TableCell class="hidden text-sm font-bold whitespace-nowrap lg:table-cell">
               {formatDate.short(invoice.invoiceDate)}
             </TableCell>
-            <TableCell class="font-space text-sm font-extrabold whitespace-nowrap">
+            <TableCell class="font-space text-sm font-bold whitespace-nowrap">
               {formatPKR.compact(invoice.total)}
             </TableCell>
-            <TableCell
-              class="hidden font-space text-sm font-extrabold whitespace-nowrap md:table-cell"
-            >
+            <TableCell class="hidden font-space text-sm font-bold whitespace-nowrap md:table-cell">
               <span class={parseFloat(invoice.balance) > 0 ? 'text-red-600' : 'text-green-600'}>
                 {parseFloat(invoice.balance) < 0 ? '-' : ''}{formatPKR.compact(
                   Math.abs(parseFloat(invoice.balance))
@@ -320,21 +371,7 @@
               </span>
             </TableCell>
             <TableCell>
-              <button
-                onclick={() => openStatusDialog(invoice)}
-                disabled={invoice.status == 'converted'}
-                class={[
-                  'inline-flex cursor-pointer items-center gap-1 rounded-full border border-brutal px-2.5 py-0.5 font-space text-xs font-bold capitalize shadow-[1.5px_1.5px_0px_var(--color-brutal)] transition hover:opacity-80',
-                  {
-                    'bg-[#86efac] ': invoice.status == 'paid',
-                    'bg-[#c084fc] ': invoice.status == 'sent',
-                    'bg-[#ff8a8a] ': invoice.status == 'cancelled',
-                    'cursor-not-allowed bg-[#fde047] ': invoice.status == 'converted'
-                  }
-                ]}
-              >
-                {invoice.status}
-              </button>
+              {@render statusButton(invoice)}
             </TableCell>
             <TableCell class="text-right">
               <div class="flex items-center justify-end gap-1 sm:gap-2">
@@ -398,40 +435,107 @@
         {:else}
           <TableRow>
             <TableCell colspan={8} class="h-24 text-center">
-              {#if searchQuery || filterType !== 'all' || filterStatus !== 'all'}
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <SearchOff />
-                    </EmptyMedia>
-                    <EmptyTitle>No Such Invoices</EmptyTitle>
-                    <EmptyDescription>No invoices found matching your filters.</EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              {:else}
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <Receipt />
-                    </EmptyMedia>
-                    <EmptyTitle>No Invoices Yet</EmptyTitle>
-                    <EmptyDescription>You haven't created any invoices yet.</EmptyDescription>
-                  </EmptyHeader>
-                  <EmptyContent>
-                    <div class="flex gap-2">
-                      <Button href="/invoices/new">Create Invoice</Button>
-                      <Button variant="outline" href="/invoices/new?type=quotation"
-                        >Create Quotation</Button
-                      >
-                    </div>
-                  </EmptyContent>
-                </Empty>
-              {/if}
+              {@render emptyState()}
             </TableCell>
           </TableRow>
         {/each}
       </TableBody>
     </Table>
+  </div>
+
+  <!-- Mobile: card list -->
+  <div class="flex flex-col gap-4 md:hidden">
+    {#each filteredInvoices as invoice (invoice.id)}
+      {@const balance = parseFloat(invoice.balance)}
+      <article class="brutal-card space-y-4 rounded-2xl bg-card p-4">
+        <header class="flex items-start justify-between gap-3">
+          <div class="min-w-0 space-y-1">
+            <p class="font-space text-sm font-bold tracking-tight">{invoice.invoiceNumber}</p>
+            <p class="text-xs font-bold text-muted-foreground">
+              {formatDate.short(invoice.invoiceDate)}
+            </p>
+          </div>
+          {@render typeBadge(invoice)}
+        </header>
+
+        <div class="min-w-0">
+          <p class="truncate text-sm font-bold">{invoice.customerName}</p>
+          {#if invoice.customerCompany}
+            <p class="truncate text-xs font-semibold text-muted-foreground">
+              {invoice.customerCompany}
+            </p>
+          {/if}
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 rounded-xl border-2 border-brutal bg-muted/40 p-3">
+          <div class="min-w-0">
+            <p class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Total</p>
+            <p class="font-space text-sm font-bold">{formatPKR.compact(invoice.total)}</p>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Balance</p>
+            <p class="font-space text-sm font-bold {balance > 0 ? 'text-red-600' : 'text-green-600'}">
+              {balance < 0 ? '-' : ''}{formatPKR.compact(Math.abs(balance))}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold tracking-wider text-muted-foreground uppercase">Status</span>
+          {@render statusButton(invoice)}
+        </div>
+
+        <footer class="flex items-center gap-2 border-t-2 border-brutal pt-3">
+          <Button variant="outline" size="sm" href="/invoices/{invoice.id}" class="flex-1">
+            View details
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            href="/invoices/{invoice.id}/print"
+            target="_blank"
+            title="Print PDF"
+            aria-label="Print PDF"
+          >
+            <Download class="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            href="/invoices/{invoice.id}/edit"
+            title="Edit Invoice"
+            aria-label="Edit invoice"
+          >
+            <Edit class="h-4 w-4" />
+          </Button>
+          {#if invoice.type === 'invoice' && balance > 0}
+            <Button
+              variant="ghost"
+              size="icon"
+              onclick={() => openPaymentDialog(invoice)}
+              title="Add Payment"
+              aria-label="Add payment"
+            >
+              <CreditCard class="h-4 w-4" />
+            </Button>
+          {/if}
+          <Button
+            variant="ghost"
+            size="icon"
+            onclick={() => handleDelete(invoice)}
+            title="Delete"
+            aria-label="Delete invoice"
+            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash class="h-4 w-4" />
+          </Button>
+        </footer>
+      </article>
+    {:else}
+      <div class="brutal-card rounded-3xl bg-card p-6">
+        {@render emptyState()}
+      </div>
+    {/each}
   </div>
 
   <!-- Results count -->

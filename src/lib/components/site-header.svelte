@@ -6,6 +6,7 @@
   import LogoutIcon from '@tabler/icons-svelte/icons/logout';
   import SettingsIcon from '@tabler/icons-svelte/icons/settings';
   import InfoIcon from '@tabler/icons-svelte/icons/info-hexagon';
+  import ArrowRight from '@tabler/icons-svelte/icons/arrow-right';
   import { Button } from '$lib/components/ui/button/index.js';
   import CommandPalette from '$lib/components/command-palette.svelte';
   import ThemeToggle from '$lib/components/theme-toggle.svelte';
@@ -86,24 +87,24 @@
 <svelte:window bind:innerWidth={windowWidth} />
 
 <header
-  class="sticky top-0 z-30 w-full border-b-2 border-brutal bg-background/95 shadow-[0_2px_0px_#111111] backdrop-blur supports-backdrop-filter:bg-background/60"
+  class="z-30 w-full border-brutal bg-background/95 shadow-[0_2px_0px_#111111] backdrop-blur supports-backdrop-filter:bg-background/60"
 >
-  <div class="mx-auto flex h-16 max-w-[1600px] items-center justify-between px-4 md:px-6">
+  <div class="mx-auto flex h-16 max-w-400 items-center justify-between px-4 md:px-6">
     <!-- Left: Logo & Desktop Brand -->
     <div class="flex items-center gap-6">
-      <a href="/dashboard" class="flex items-center gap-2">
+      <a href="/dashboard" class="flex items-center gap-2 font-display">
         <img src="/logo.png" alt="Cool Care logo" class="h-9 w-auto" />
         <span class="text-xl font-bold tracking-tight text-foreground">Cool Care</span>
       </a>
 
       <!-- Desktop Nav Items -->
-      <nav class="hidden items-center gap-6 md:flex">
+      <nav class="hidden items-center gap-6 md:flex font-display">
         {#each navItems as item (item.path)}
           {@const isActive = page.url.pathname.startsWith(item.path)}
           <a
             href={item.path}
             class="text-sm font-bold transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 {isActive
-              ? 'rounded-lg brutal bg-primary/10 px-3 py-1 font-bold text-foreground'
+              ? 'brutal bg-primary/10 px-3 py-1 font-bold text-foreground'
               : 'text-muted-foreground hover:rounded-lg hover:brutal-border hover:px-3 hover:py-1 hover:text-foreground hover:brutal-shadow-sm'}"
           >
             {item.name}
@@ -211,21 +212,21 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+    class="fixed inset-0 h-screen z-40 bg-black/50 backdrop-blur-sm md:hidden"
     onclick={() => (mobileMenuOpen = false)}
     transition:fade={{ duration: 200 }}
   ></div>
 
   <!-- Drawer -->
   <div
-    class="fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col border-l bg-background shadow-2xl sm:max-w-sm md:hidden"
+    class="fixed inset-y-0 right-0 z-50 flex h-full w-96 flex-col border-l bg-background shadow-2xl sm:max-w-sm md:hidden font-display"
     transition:fly={{ x: 400, duration: 250 }}
   >
     <!-- Header inside Drawer -->
     <div class="flex h-16 items-center justify-between border-b px-6">
       <div class="flex items-center gap-2">
         <img src="/logo.png" alt="Cool Care logo" class="h-9 w-auto" />
-        <span class="text-xl font-bold tracking-tight text-foreground">Cool Care</span>
+        <span class="text-xl font-display font-bold tracking-tight text-foreground">Cool Care</span>
       </div>
       <Button
         variant="ghost"
@@ -249,8 +250,10 @@
               ? 'border-primary/20 bg-primary/5 text-primary'
               : 'text-foreground'}"
           >
+            <!-- class="flex items-center justify-between rounded-xl border-2 border-transparent p-3 text-lg font-bold transition-all hover:border-brutal hover:bg-muted {isActive
+              ? 'border-primary/20 bg-primary/5 text-primary'
+              : 'text-foreground'}" -->
             <span>{item.name}</span>
-            <span class="text-xs text-muted-foreground">→</span>
           </a>
         {/each}
 
@@ -260,12 +263,12 @@
           >More Options</span
         >
 
-        {#each secondaryNavItems as item}
+        {#each secondaryNavItems as item (item.path)}
           {@const isActive = page.url.pathname.startsWith(item.path)}
           <a
             href={item.path}
             onclick={() => (mobileMenuOpen = false)}
-            class="flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition-colors hover:bg-muted {isActive
+            class="flex items-center gap-3 rounded-xl p-3 text-sm font-semibold transition-colors hover:bg-muted {isActive
               ? 'bg-primary/5 text-primary'
               : 'text-muted-foreground'}"
           >
@@ -277,7 +280,7 @@
     </div>
 
     <!-- Footer User Details & Log Out -->
-    <div class="flex flex-col gap-4 border-t bg-muted/40 p-6">
+    <div class="flex flex-col gap-4 border-t bg-muted/40 px-6 py-2">
       <div class="flex items-center gap-3">
         <Avatar.Root class="h-12 w-12 brutal-border brutal-shadow-sm">
           <Avatar.Image src={user.avatar} alt={user.name} />
@@ -293,6 +296,7 @@
 
       <Button
         variant="outline"
+        size="sm"
         class="w-full border-2 border-destructive/50 font-semibold text-destructive shadow-[2px_2px_0px_rgba(239,68,68,0.2)] hover:border-destructive hover:bg-destructive/10"
         onclick={() => {
           mobileMenuOpen = false;

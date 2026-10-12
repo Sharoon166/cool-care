@@ -62,7 +62,7 @@
               <Avatar.Fallback class="rounded-xl bg-primary/10 font-bold text-primary">{user.name[0]}</Avatar.Fallback>
             </Avatar.Root>
             <div class="grid flex-1 text-start leading-tight">
-              <span class="truncate font-extrabold">{user.name}</span>
+              <span class="truncate font-bold">{user.name}</span>
               <span class="truncate text-xs font-semibold text-muted-foreground">
                 {user.email}
               </span>

@@ -171,7 +171,7 @@
       <TableBody>
         {#each filteredPayments as payment, index (payment.id)}
           <TableRow>
-            <TableCell class="w-8 font-space text-sm font-extrabold md:w-12">{index + 1}.</TableCell>
+            <TableCell class="w-8 font-space text-sm font-bold md:w-12">{index + 1}.</TableCell>
             <TableCell class="text-sm font-semibold whitespace-nowrap">{formatDate.short(payment.date)}</TableCell>
             <TableCell>
               {#if payment.method}
@@ -181,10 +181,10 @@
                 <span class="text-xs font-semibold text-muted-foreground">-</span>
               {/if}
             </TableCell>
-            <TableCell class="max-w-40 min-w-0 font-extrabold">
+            <TableCell class="max-w-40 min-w-0 font-bold">
               <div class="truncate text-sm">{payment.reference || payment.notes || '-'}</div>
             </TableCell>
-            <TableCell class="font-space text-sm font-extrabold whitespace-nowrap text-right">{formatPKR.compact(payment.amount)}</TableCell>
+            <TableCell class="font-space text-sm font-bold whitespace-nowrap text-right">{formatPKR.compact(payment.amount)}</TableCell>
             <TableCell class="text-center">
               <div class="flex items-center justify-center gap-1 sm:gap-2">
                 <Button variant="ghost" size="sm" onclick={() => onPaymentSelect(payment)} title="View Details">View Details</Button>

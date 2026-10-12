@@ -84,7 +84,7 @@
       <Table.Body>
         {#each data.users as user}
           <Table.Row>
-            <Table.Cell class="text-sm font-extrabold">
+            <Table.Cell class="text-sm font-bold">
               <div class="flex items-center gap-2">
                 <div
                   class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-brutal bg-[#c084fc] shadow-[1.5px_1.5px_0px_var(--color-brutal)]"

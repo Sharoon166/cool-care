@@ -89,8 +89,8 @@
         <CoinsIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Total Revenue</span>
-        <div class="font-space text-lg font-extrabold">
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Total Revenue</span>
+        <div class="font-space text-lg font-bold">
           {formatPKR.compact(metrics.totalRevenue)}
         </div>
       </div>
@@ -106,8 +106,8 @@
         <ReceiptIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Total Invoices</span>
-        <div class="font-space text-lg font-extrabold">
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Total Invoices</span>
+        <div class="font-space text-lg font-bold">
           {formatNumber(metrics.totalInvoices)}
         </div>
       </div>
@@ -123,8 +123,8 @@
         <FileTextIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Quotations</span>
-        <div class="font-space text-lg font-extrabold">
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Quotations</span>
+        <div class="font-space text-lg font-bold">
           {formatNumber(metrics.totalQuotations)}
         </div>
       </div>
@@ -140,8 +140,8 @@
         <CoinsIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Total Paid</span>
-        <div class="font-space text-lg font-extrabold">
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Total Paid</span>
+        <div class="font-space text-lg font-bold">
           {formatPKR.compact(metrics.totalPaid)}
         </div>
       </div>
@@ -157,8 +157,8 @@
         <CoinsIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Outstanding</span>
-        <div class="font-space text-lg font-extrabold">
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Outstanding</span>
+        <div class="font-space text-lg font-bold">
           {formatPKR.compact(metrics.totalOutstanding)}
         </div>
       </div>
@@ -174,10 +174,10 @@
         <ReceiptIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="text-xs font-extrabold tracking-wider text-white/80 uppercase"
+        <span class="text-xs font-bold tracking-wider text-white/80 uppercase"
           >Avg Invoice</span
         >
-        <div class="font-space text-lg font-extrabold text-white">
+        <div class="font-space text-lg font-bold text-white">
           {formatPKR.compact(metrics.avgInvoiceValue)}
         </div>
       </div>

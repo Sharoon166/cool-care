@@ -1,4 +1,5 @@
 @import url('https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tenor+Sans&display=swap');
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
@@ -58,7 +59,7 @@
 
   --font-fira: 'Outfit', sans-serif;
   --font-space: 'Space Grotesk', sans-serif;
-  --font-display: 'Clash Display', sans-serif;
+  --font-display: 'Tenor Sans', sans-serif;
 }
 
 .dark {
@@ -151,10 +152,6 @@
   --font-fira: var(--font-fira);
   --font-space: var(--font-space);
   --font-display: var(--font-display);
-  --font-fira-sans: var(--font-fira-sans);
-  --font-fira-mono: 'Fira Mono';
-  --font-montserrat: 'Montserrat', monospace;
-  --font-lato: 'Lato', monospace;
 
   --color-brutal: #111111;
   --shadow-brutal-xs: 1px 1px 0px #111111;
@@ -175,23 +172,23 @@
 }
 
 @utility brutal-shadow-xs {
-  box-shadow: 1px 1px 0px #111111;
+  box-shadow: 0px 0px 0px #111111;
 }
 
 @utility brutal-shadow-sm {
-  box-shadow: 2px 2px 0px #111111;
+  box-shadow: 0px 0px 0px #111111;
 }
 
 @utility brutal-shadow-md {
-  box-shadow: 4px 4px 0px #111111;
+  box-shadow: 0px 0px 0px #111111;
 }
 
 @utility brutal-shadow-lg {
-  box-shadow: 6px 6px 0px #111111;
+  box-shadow: 0px 0px 0px #111111;
 }
 
 @utility brutal-shadow-xl {
-  box-shadow: 8px 8px 0px #111111;
+  box-shadow: 0px 0px 0px #111111;
 }
 
 @utility brutal {
@@ -227,20 +224,12 @@
   h3,
   h4,
   h5 {
-    font-family: 'Clash Display', sans-serif;
+    font-family: 'Tenor Sans', sans-serif;
     display: inline-block;
     letter-spacing: -0.01em;
     line-height: 1.1;
-    font-weight: 700;
   }
 
-  @font-face {
-    font-family: 'MediaSans';
-    src: url('/fonts/MediaSans-Regular.otf') format('opentype');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-  }
 }
 
 /* Print styles */

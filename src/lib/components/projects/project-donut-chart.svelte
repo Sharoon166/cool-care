@@ -147,7 +147,7 @@
               <div class="h-2.5 w-2.5 rounded-full shrink-0" style="background-color: {item.color}"></div>
               <span class="text-[11px] font-semibold text-muted-foreground">{item.label}</span>
             </div>
-            <div class="text-xs font-extrabold text-foreground">{formatPKR.compact(item.value)}</div>
+            <div class="text-xs font-bold text-foreground">{formatPKR.compact(item.value)}</div>
             <div class="text-[10px] text-muted-foreground">{percentageFor(item.value)}%</div>
           </button>
         {/each}
@@ -156,7 +156,7 @@
       <div class="mt-4 grid grid-cols-1 gap-2">
         <div class="rounded-lg border border-border/50 bg-background p-3">
           <div class="text-[11px] font-semibold text-muted-foreground">Received</div>
-          <div class="mt-1 text-sm font-extrabold text-foreground">
+          <div class="mt-1 text-sm font-bold text-foreground">
             {formatPKR.compact(numericReceived)}
           </div>
         </div>

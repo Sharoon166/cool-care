@@ -168,10 +168,6 @@
   <div class="mb-8">
     <PageHeader title="Invoice Details" description={`Invoice ${invoice.invoiceNumber}`}>
       <div class="flex flex-wrap gap-2">
-        <Button variant="outline" href="/invoices">
-          <ArrowLeft class="h-5 w-5" />
-          Back to Invoices
-        </Button>
         <Button variant="outline" href="/invoices/{invoice.id}/print" target="_blank">
           <FileText class="h-5 w-5" />
           Print PDF
@@ -186,42 +182,40 @@
 
   <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
     <!-- Invoice Details -->
+
     <div class="space-y-6 lg:col-span-2">
       <!-- Invoice Header -->
-      <div class="brutal-card rounded-3xl bg-card p-6">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 class="text-xl font-bold sm:text-2xl">{invoice.invoiceNumber}</h2>
-            <p class="text-sm text-muted-foreground">
-              {new Date(invoice.invoiceDate).toLocaleDateString('en-PK', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </p>
+      <div>
+        <div class="brutal-card rounded-3xl bg-card p-6">
+          <div class="flex flex-col gap-2 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-muted-foreground">
+                {formatDate.short(invoice.invoiceDate)}
+              </p>
+            </div>
+            <div class="flex items-center gap-2 sm:text-right">
+              <Badge variant={getStatusBadgeVariant(invoice.status || '')} class="uppercase">
+                {invoice.status}
+              </Badge>
+              <p class="text-sm text-muted-foreground capitalize">{invoice.type}</p>
+            </div>
           </div>
-          <div class="flex items-center gap-2 sm:text-right">
-            <Badge variant={getStatusBadgeVariant(invoice.status || '')} class="capitalize">
-              {invoice.status}
-            </Badge>
-            <p class="text-sm text-muted-foreground capitalize">{invoice.type}</p>
-          </div>
-        </div>
 
-        <!-- Customer Info -->
-        <div class="border-t pt-4">
-          <h3 class="mb-2 font-semibold">Customer Information</h3>
-          <div class="text-sm text-muted-foreground">
-            <p class="font-medium">{invoice.customerName}</p>
-            {#if invoice.customerCompany}
-              <p>{invoice.customerCompany}</p>
-            {/if}
-            {#if invoice.customerPhone}
-              <p>{invoice.customerPhone}</p>
-            {/if}
-            {#if invoice.customerEmail}
-              <p>{invoice.customerEmail}</p>
-            {/if}
+          <!-- Customer Info -->
+          <div class="border-t pt-4">
+            <h3 class="mb-2 font-semibold">Customer Information</h3>
+            <div class="text-sm text-muted-foreground">
+              <p class="font-medium">{invoice.customerName}</p>
+              {#if invoice.customerCompany}
+                <p>{invoice.customerCompany}</p>
+              {/if}
+              {#if invoice.customerPhone}
+                <p>{invoice.customerPhone}</p>
+              {/if}
+              {#if invoice.customerEmail}
+                <p>{invoice.customerEmail}</p>
+              {/if}
+            </div>
           </div>
         </div>
       </div>
@@ -242,11 +236,13 @@
           <TableBody>
             {#each invoice.items as item, index (item.id)}
               <TableRow>
-                <TableCell class="text-left">{(index + 1).toString().padStart(2,"0")}.</TableCell>
+                <TableCell class="text-left">{(index + 1).toString().padStart(2, '0')}.</TableCell>
                 <TableCell>
                   <div>{item.description}</div>
                   {#if item.notes}
-                    <div class="text-sm font-medium italic text-muted-foreground/70">{item.notes}</div>
+                    <div class="text-sm font-medium text-muted-foreground/70 italic">
+                      {item.notes}
+                    </div>
                   {/if}
                 </TableCell>
                 <TableCell class="text-center">{item.quantity}</TableCell>

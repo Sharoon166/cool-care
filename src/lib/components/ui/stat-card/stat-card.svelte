@@ -20,7 +20,7 @@
 </script>
 
 <div
-  class={cn('flex items-center gap-4 rounded-3xl brutal-border p-5 brutal-shadow-md', className)}
+  class={cn('flex max-md:flex-col items-center gap-4 rounded-3xl brutal-border p-5 brutal-shadow-md', className)}
   style="background-color: {bg}"
 >
   {#if icon}
@@ -30,11 +30,11 @@
       {@render icon()}
     </div>
   {/if}
-  <div class="space-y-0.5 dark:text-background">
-    <span class="text-xs font-extrabold tracking-wider uppercase opacity-80">{label}</span>
-    <div class="font-space text-3xl font-extrabold">{value}</div>
+  <div class="space-y-0.5 dark:text-background max-md:text-center">
+    <span class="text-xs font-bold tracking-wider uppercase opacity-80">{label}</span>
+    <div class="font-space text-3xl font-bold">{value}</div>
     {#if subtext}
-      <p class="text-xs font-medium text-muted-foreground dark:text-muted">{subtext}</p>
+      <p class="text-xs font-medium text-foreground dark:text-muted">{subtext}</p>
     {/if}
   </div>
 </div>

@@ -34,7 +34,7 @@
       <Coins size={20} />
     </div>
     <span class="/70 text-xs font-semibold tracking-wider uppercase">Outstanding</span>
-    <span class="mt-2 font-space text-2xl font-extrabold tracking-tight sm:text-3xl">
+    <span class="mt-2 font-space text-2xl font-bold tracking-tight sm:text-3xl">
       {#if databaseError}
         --
       {:else}
@@ -58,7 +58,7 @@
       <AlertCircle size={20} />
     </div>
     <span class="/70 text-xs font-semibold tracking-wider uppercase">Overdue</span>
-    <span class="mt-2 font-space text-2xl font-extrabold tracking-tight sm:text-3xl">
+    <span class="mt-2 font-space text-2xl font-bold tracking-tight sm:text-3xl">
       {#if databaseError}
         --
       {:else}
@@ -86,7 +86,7 @@
       <TrendingUp size={20} />
     </div>
     <span class="/70 text-xs font-semibold tracking-wider uppercase">Collected</span>
-    <span class="mt-2 font-space text-2xl font-extrabold tracking-tight sm:text-3xl">
+    <span class="mt-2 font-space text-2xl font-bold tracking-tight sm:text-3xl">
       {#if databaseError}
         --
       {:else}
@@ -108,7 +108,7 @@
       <FileCheck size={20} />
     </div>
     <span class="/70 text-xs font-semibold tracking-wider uppercase">Quote Rate</span>
-    <span class="mt-2 font-space text-2xl font-extrabold tracking-tight sm:text-3xl">
+    <span class="mt-2 font-space text-2xl font-bold tracking-tight sm:text-3xl">
       {#if databaseError}
         --
       {:else if metrics.totalQuotes === 0}

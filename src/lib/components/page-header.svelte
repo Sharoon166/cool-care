@@ -38,11 +38,11 @@
   {/if}
   <div class="flex flex-wrap items-center justify-between gap-y-4">
     <div>
-      <h1 class="font-space text-3xl font-extrabold tracking-tight md:text-4xl dark:text-white">
+      <h1 class="text-3xl font-bold  tracking-tight md:text-4xl dark:text-white">
         {title}
       </h1>
       {#if description}
-        <p class="font-outfit mt-1 text-sm font-semibold text-[#555555] dark:text-neutral-300">
+        <p class="mt-1 text-[#555555] dark:text-neutral-300">
           {description}
         </p>
       {/if}

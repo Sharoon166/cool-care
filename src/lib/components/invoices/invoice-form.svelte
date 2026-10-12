@@ -135,6 +135,47 @@
   let selectedCustomer = $derived(customers.find((c) => c.id === customerId));
 </script>
 
+{#snippet quantityField(item: InvoiceItem, index: number)}
+  {#if item.isService}
+    <span class="text-sm text-muted-foreground">-</span>
+  {:else}
+    <Input
+      type="number"
+      min="1"
+      step="1"
+      bind:value={item.quantity}
+      oninput={() => calculateItemAmount(index)}
+      class="w-full md:w-20"
+    />
+  {/if}
+{/snippet}
+
+{#snippet serviceToggle(item: InvoiceItem, index: number)}
+  <label class="flex cursor-pointer items-center gap-2 text-xs font-bold text-muted-foreground">
+    <input
+      type="checkbox"
+      bind:checked={item.isService}
+      onchange={() => calculateItemAmount(index)}
+      class="h-4 w-4 rounded border-2 border-brutal accent-primary"
+    />
+    Service (no quantity)
+  </label>
+{/snippet}
+
+{#snippet removeButton(index: number)}
+  <Button
+    type="button"
+    variant="ghost"
+    size="sm"
+    onclick={() => removeItem(index)}
+    disabled={items.length === 1}
+    class="text-destructive hover:bg-destructive/10 hover:text-destructive font-medium"
+  >
+    <Trash class="mr-1.5 h-4 w-4" />
+    Remove
+  </Button>
+{/snippet}
+
 <div class="mx-auto w-full max-w-6xl">
   <form
     method="POST"
@@ -277,40 +318,20 @@
         <p class="text-sm text-red-600">{errors.items[0]}</p>
       {/if}
 
+      <!-- Desktop / tablet: table -->
       <div
-        class="overflow-x-auto rounded-3xl border-2 border-brutal bg-card p-1 shadow-[4px_4px_0px_var(--color-brutal)]"
+        class="hidden overflow-x-auto rounded-3xl border-2 border-brutal bg-card p-1 shadow-[4px_4px_0px_var(--color-brutal)] md:block"
       >
         <table class="w-full border-collapse">
           <thead class="bg-muted">
             <tr>
-              <th
-                class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0"
-                >#</th
-              >
-              <th
-                class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0"
-                >Description</th
-              >
-              <th
-                class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0"
-                >Qty</th
-              >
-              <th
-                class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0"
-                >Rate</th
-              >
-              <th
-                class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0"
-                >Amount</th
-              >
-              <th
-                class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0"
-                >Notes</th
-              >
-              <th
-                class="w-16 border-b-2 border-brutal px-4 py-3 text-center text-sm font-semibold text-primary"
-                >Action</th
-              >
+              <th class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0">#</th>
+              <th class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0">Description</th>
+              <th class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0">Qty</th>
+              <th class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0">Rate</th>
+              <th class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0">Amount</th>
+              <th class="border-r-2 border-b-2 border-brutal px-4 py-3 text-left text-sm font-semibold text-primary last:border-r-0">Notes</th>
+              <th class="w-16 border-b-2 border-brutal px-4 py-3 text-center text-sm font-semibold text-primary">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -320,37 +341,13 @@
                   {(index + 1).toString().padStart(2, '0')}.
                 </td>
                 <td class="border-r border-brutal px-4 py-2">
-                  <div class="space-y-2">
-                    <Input
-                      bind:value={item.description}
-                      placeholder="Item description"
-                      class="min-w-xs"
-                    />
-                  </div>
+                  <Input bind:value={item.description} placeholder="Item description" class="min-w-xs" />
                 </td>
-                <td class="flex gap-2 space-y-1 border-r border-brutal px-4 py-2">
-                  {#if item.isService}
-                    <div class="text-sm text-muted-foreground">-</div>
-                  {:else}
-                    <Input
-                      type="number"
-                      min="1"
-                      step="1"
-                      bind:value={item.quantity}
-                      oninput={() => calculateItemAmount(index)}
-                      class="w-20 "
-                    />
-                  {/if}
-                  <label class="flex items-center gap-1 text-xs text-muted-foreground">
-                    <input
-                      type="checkbox"
-                      bind:checked={item.isService}
-                      onchange={() => calculateItemAmount(index)}
-                      class="rounded"
-                      title="Service (No quantity)"
-                    />
-                    Service
-                  </label>
+                <td class="border-r border-brutal px-4 py-2">
+                  <div class="flex flex-col gap-2">
+                    {@render quantityField(item, index)}
+                    {@render serviceToggle(item, index)}
+                  </div>
                 </td>
                 <td class="border-r border-brutal px-4 py-2">
                   <Input
@@ -359,7 +356,7 @@
                     step="1"
                     bind:value={item.rate}
                     oninput={() => calculateItemAmount(index)}
-                    class="w-24 "
+                    class="w-24"
                   />
                 </td>
                 <td class="border-r border-brutal px-4 py-2">
@@ -375,6 +372,7 @@
                     size="sm"
                     onclick={() => removeItem(index)}
                     disabled={items.length === 1}
+                    aria-label="Remove item {index + 1}"
                   >
                     <Trash class="h-4 w-4" />
                   </Button>
@@ -383,34 +381,70 @@
             {/each}
           </tbody>
         </table>
-        <div class="mt-2 flex justify-center p-2 max-md:hidden">
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            class="w-full max-w-sm"
-            onclick={addItem}
-            disabled={items.at(-1)?.description === '' || loading}
-          >
-            <Plus class="h-4 w-4" />
-            Add Item
-          </Button>
-        </div>
       </div>
-    </div>
 
-    <div class="flex justify-center p-2 md:hidden">
-      <Button
-        type="button"
-        variant="default"
-        size="sm"
-        class="w-full max-w-sm"
-        onclick={addItem}
-        disabled={items.at(-1)?.description === '' || loading}
-      >
-        <Plus class="h-4 w-4" />
-        Add Item
-      </Button>
+      <!-- Mobile: item cards -->
+      <div class="flex flex-col gap-4 md:hidden">
+        {#each items as item, index (item.id)}
+          <article
+            class="space-y-4 rounded-2xl border-2 border-brutal bg-card p-4 shadow-[3px_3px_0px_var(--color-brutal)]"
+          >
+            <header class="flex items-center justify-between">
+              <span class="font-space text-sm font-extrabold">
+                Item {(index + 1).toString().padStart(2, '0')}
+              </span>
+              {@render removeButton(index)}
+            </header>
+
+            <label class="block space-y-1.5">
+              <span class="text-xs font-bold tracking-wider text-muted-foreground uppercase">Description</span>
+              <Input bind:value={item.description} placeholder="Item description" />
+            </label>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1.5">
+                <span class="block text-xs font-bold tracking-wider text-muted-foreground uppercase">Qty</span>
+                {@render quantityField(item, index)}
+                {@render serviceToggle(item, index)}
+              </div>
+              <label class="block space-y-1.5">
+                <span class="block text-xs font-bold tracking-wider text-muted-foreground uppercase">Rate</span>
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  bind:value={item.rate}
+                  oninput={() => calculateItemAmount(index)}
+                />
+              </label>
+            </div>
+
+            <label class="block space-y-1.5">
+              <span class="text-xs font-bold tracking-wider text-muted-foreground uppercase">Notes</span>
+              <Input bind:value={item.notes} placeholder="Notes" />
+            </label>
+
+            <div class="flex items-center justify-between rounded-xl border-2 border-brutal bg-muted/40 px-3 py-2">
+              <span class="text-xs font-bold tracking-wider text-muted-foreground uppercase">Amount</span>
+              <span class="font-space text-base font-extrabold">{formatPKR.compact(item.amount)}</span>
+            </div>
+          </article>
+        {/each}
+      </div>
+
+      <div class="flex justify-center p-2">
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          class="w-full max-w-sm"
+          onclick={addItem}
+          disabled={items.at(-1)?.description === '' || loading}
+        >
+          <Plus class="h-4 w-4" />
+          Add Item
+        </Button>
+      </div>
     </div>
 
     <!-- Calculations -->
@@ -433,11 +467,11 @@
             />
             <Select.Root type="single" name="discountType" bind:value={discountType}>
               <Select.Trigger class="w-24">
-                {discountType === 'percentage' ? '%' : '$'}
+                {discountType === 'percentage' ? '%' : 'Rs.'}
               </Select.Trigger>
               <Select.Content>
                 <Select.Item value="percentage">%</Select.Item>
-                <Select.Item value="value">$</Select.Item>
+                <Select.Item value="value">Rs.</Select.Item>
               </Select.Content>
             </Select.Root>
           </div>

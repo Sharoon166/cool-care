@@ -52,7 +52,7 @@
                   </div>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <p class="truncate text-sm font-extrabold">
+                  <p class="truncate text-sm font-bold">
                     {customer.name}
                   </p>
                   <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-bold text-muted-foreground/90">
@@ -66,7 +66,7 @@
               </div>
               <div class="flex shrink-0 items-center gap-2 sm:gap-2 max-sm:grow max-sm:justify-end">
                 <div class="text-right">
-                  <div class="font-space text-sm font-extrabold whitespace-nowrap text-yellow-600 dark:text-yellow-500">
+                  <div class="font-space text-sm font-bold whitespace-nowrap text-yellow-600 dark:text-yellow-500">
                     {formatCurrency(customer.outstandingAmount)}
                   </div>
                 </div>

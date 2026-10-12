@@ -66,7 +66,7 @@
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
-                <p class="truncate text-sm font-extrabold">
+                <p class="truncate text-sm font-bold">
                   {invoice.invoiceNumber}
                 </p>
                 <span
@@ -95,7 +95,7 @@
           </div>
           <div class="flex shrink-0 items-center gap-2 max-sm:grow max-sm:justify-end">
             <div class="text-right">
-              <div class="font-space text-sm font-extrabold whitespace-nowrap {invoice.status === 'overdue' ? 'text-red-600 dark:text-red-500' : ''}">
+              <div class="font-space text-sm font-bold whitespace-nowrap {invoice.status === 'overdue' ? 'text-red-600 dark:text-red-500' : ''}">
                 {formatCurrency(invoice.balance)}
               </div>
             </div>

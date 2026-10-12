@@ -88,7 +88,7 @@
 
       <div class="min-w-0 flex-1 space-y-1">
         {#if title}
-          <p class="text-sm font-extrabold">{title}</p>
+          <p class="text-sm font-bold">{title}</p>
         {/if}
         <div class="text-sm font-semibold text-muted-foreground [&_a]:underline [&_a]:hover:no-underline">
           {@render children?.()}

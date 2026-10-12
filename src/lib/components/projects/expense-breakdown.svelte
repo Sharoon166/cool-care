@@ -131,7 +131,7 @@
       <div class="mt-3 rounded-xl brutal-border bg-[#111] p-3">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold tracking-wider text-white/70 uppercase">Total Spent</span>
-          <span class="font-space text-base font-extrabold text-white">{formatPKR.compact(numericTotalExpenses)}</span>
+          <span class="font-space text-base font-bold text-white">{formatPKR.compact(numericTotalExpenses)}</span>
         </div>
         {#if numericBudget > 0}
           <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-white/20">

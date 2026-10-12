@@ -108,14 +108,14 @@
                 style="background-color: {item.color}; border-color: {item.color}"
               ></div>
               <div>
-                <p class="text-sm font-extrabold capitalize">{item.method}</p>
+                <p class="text-sm font-bold capitalize">{item.method}</p>
                 <p class="text-xs font-semibold text-muted-foreground">
                   {item.count} payment{item.count !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>
             <div class="text-right">
-              <div class="font-space text-sm font-extrabold">{formatPKR.compact(item.value)}</div>
+              <div class="font-space text-sm font-bold">{formatPKR.compact(item.value)}</div>
               <div class="text-xs font-bold text-muted-foreground">{item.percentage}%</div>
             </div>
           </button>

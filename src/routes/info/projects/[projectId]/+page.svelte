@@ -34,7 +34,7 @@
         >
           <Lock class="h-8 w-8 text-muted-foreground" />
         </div>
-        <h1 class="font-space text-2xl font-extrabold">Project Access</h1>
+        <h1 class="font-space text-2xl font-bold">Project Access</h1>
         <p class="mt-2 text-sm text-muted-foreground">Enter the PIN to view this project</p>
       </div>
 
@@ -61,26 +61,26 @@
 {:else}
   <div class="mx-auto max-w-4xl space-y-8 px-4 py-8">
     <div class="space-y-2 text-center">
-      <h1 class="font-space text-3xl font-extrabold">{data.project?.name}</h1>
+      <h1 class="font-space text-3xl font-bold">{data.project?.name}</h1>
       <p class="text-sm text-muted-foreground">Shared project overview</p>
     </div>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div class="rounded-2xl brutal-border bg-[#86efac] p-4">
         <span class="text-xs font-bold tracking-wider uppercase">Total Budget</span>
-        <div class="mt-1 font-space text-xl font-extrabold">
+        <div class="mt-1 font-space text-xl font-bold">
           {formatPKR.compact(data.project?.budget || 0)}
         </div>
       </div>
       <div class="rounded-2xl brutal-border bg-[#fbbf24] p-4">
         <span class="text-xs font-bold tracking-wider uppercase">Payments Received</span>
-        <div class="mt-1 font-space text-xl font-extrabold">
+        <div class="mt-1 font-space text-xl font-bold">
           {formatPKR.compact(data.totalReceived || 0)}
         </div>
       </div>
       <div class="rounded-2xl brutal-border bg-[#c084fc] p-4">
         <span class="text-xs font-bold tracking-wider uppercase">Balance</span>
-        <div class="mt-1 font-space text-xl font-extrabold">
+        <div class="mt-1 font-space text-xl font-bold">
           {formatPKR.compact(Math.max(0, (data.project?.budget || 0) - (data.totalReceived || 0)))}
         </div>
       </div>
@@ -88,7 +88,7 @@
 
     {#if data.payments?.length > 0}
       <div class="space-y-4">
-        <h2 class="font-space text-xl font-extrabold">Payments Received</h2>
+        <h2 class="font-space text-xl font-bold">Payments Received</h2>
         <div class="overflow-hidden overflow-x-auto brutal-card rounded-3xl bg-card p-1">
           <table class="w-full min-w-[500px]">
             <thead>

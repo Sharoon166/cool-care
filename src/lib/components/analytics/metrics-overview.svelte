@@ -130,10 +130,10 @@
                 <metric.icon class="h-6 w-6" />
             </div>
             <div class="min-w-0 flex-1 space-y-0.5">
-                <span class="text-xs font-extrabold tracking-wider uppercase opacity-80"
+                <span class="text-xs font-bold tracking-wider uppercase opacity-80"
                     >{metric.title}</span
                 >
-                <div class="truncate font-space text-2xl font-extrabold sm:text-3xl">
+                <div class="truncate font-space text-2xl font-bold sm:text-3xl">
                     {metric.value}
                 </div>
                 <div

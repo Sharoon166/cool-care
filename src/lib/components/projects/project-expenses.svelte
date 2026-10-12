@@ -167,16 +167,16 @@
       <TableBody>
         {#each filteredExpenses as expense, index (expense.id)}
           <TableRow>
-            <TableCell class="w-8 font-space text-sm font-extrabold md:w-12">{index + 1}.</TableCell>
+            <TableCell class="w-8 font-space text-sm font-bold md:w-12">{index + 1}.</TableCell>
             <TableCell class="text-sm font-semibold whitespace-nowrap">{formatDate.short(expense.date)}</TableCell>
             <TableCell>
               <Badge variant={getCategoryBadgeVariant(expense.category)}
                 class="border border-brutal px-2.5 py-0.5 font-space text-xs font-bold capitalize shadow-[1.5px_1.5px_0px_var(--color-brutal)]">{expense.category}</Badge>
             </TableCell>
-            <TableCell class="max-w-40 min-w-0 font-extrabold">
+            <TableCell class="max-w-40 min-w-0 font-bold">
               <div class="truncate text-sm">{expense.description}</div>
             </TableCell>
-            <TableCell class="font-space text-sm font-extrabold whitespace-nowrap text-right">{formatPKR.compact(expense.amount)}</TableCell>
+            <TableCell class="font-space text-sm font-bold whitespace-nowrap text-right">{formatPKR.compact(expense.amount)}</TableCell>
             <TableCell class="text-center">
               <div class="flex items-center justify-center gap-1 sm:gap-2">
                 <Button variant="ghost" size="sm" onclick={() => onExpenseSelect(expense as never)} title="View Details">View Details</Button>

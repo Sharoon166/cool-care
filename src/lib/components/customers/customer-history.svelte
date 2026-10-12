@@ -129,13 +129,13 @@
             <Table.Body>
               {#each invoices as invoice (invoice.id)}
                 <Table.Row>
-                  <Table.Cell class="font-space text-sm font-extrabold "
+                  <Table.Cell class="font-space text-sm font-bold "
                     >{invoice.invoiceNumber}</Table.Cell
                   >
                   <Table.Cell class="text-sm font-semibold "
                     >{formatDate(invoice.invoiceDate)}</Table.Cell
                   >
-                  <Table.Cell class="font-space text-sm font-extrabold "
+                  <Table.Cell class="font-space text-sm font-bold "
                     >{formatPKR.compact(invoice.total)}</Table.Cell
                   >
                   <Table.Cell>
@@ -216,13 +216,13 @@
             <Table.Body>
               {#each quotations as quote (quote.id)}
                 <Table.Row>
-                  <Table.Cell class="font-space text-sm font-extrabold "
+                  <Table.Cell class="font-space text-sm font-bold "
                     >{quote.invoiceNumber}</Table.Cell
                   >
                   <Table.Cell class="text-sm font-semibold "
                     >{formatDate(quote.invoiceDate)}</Table.Cell
                   >
-                  <Table.Cell class="font-space text-sm font-extrabold "
+                  <Table.Cell class="font-space text-sm font-bold "
                     >{formatPKR.compact(quote.total)}</Table.Cell
                   >
                   <Table.Cell>
@@ -306,10 +306,10 @@
                   <Table.Cell class="text-sm font-semibold "
                     >{formatDate(payment.paymentDate)}</Table.Cell
                   >
-                  <Table.Cell class="font-space text-sm font-extrabold "
+                  <Table.Cell class="font-space text-sm font-bold "
                     >{payment.invoiceNumber}</Table.Cell
                   >
-                  <Table.Cell class="font-space text-sm font-extrabold "
+                  <Table.Cell class="font-space text-sm font-bold "
                     >{formatPKR.compact(payment.amount)}</Table.Cell
                   >
                   <Table.Cell>
@@ -357,7 +357,7 @@
             <Table.Body>
               {#each projects as project (project.id)}
                 <Table.Row>
-                  <Table.Cell class="max-w-50 min-w-0 font-extrabold">
+                  <Table.Cell class="max-w-50 min-w-0 font-bold">
                     <div class="truncate text-sm">{project.name}</div>
                     {#if project.description}
                       <div class="truncate text-xs font-semibold text-muted-foreground">
@@ -371,13 +371,13 @@
                       – {formatDate(project.expectedEndDate)}
                     {/if}
                   </Table.Cell>
-                  <Table.Cell class="font-space text-sm font-extrabold whitespace-nowrap">
+                  <Table.Cell class="font-space text-sm font-bold whitespace-nowrap">
                     {formatPKR.compact(project.budget)}
                   </Table.Cell>
-                  <Table.Cell class="font-space text-sm font-extrabold whitespace-nowrap">
+                  <Table.Cell class="font-space text-sm font-bold whitespace-nowrap">
                     {formatPKR.compact(project.spent)}
                   </Table.Cell>
-                  <Table.Cell class="font-space text-sm font-extrabold whitespace-nowrap">
+                  <Table.Cell class="font-space text-sm font-bold whitespace-nowrap">
                     {formatPKR.compact(project.received)}
                   </Table.Cell>
                   <Table.Cell>

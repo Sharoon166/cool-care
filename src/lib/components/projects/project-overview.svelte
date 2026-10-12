@@ -137,8 +137,8 @@
         <CoinsIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Budget</span>
-        <div class="font-space text-lg font-extrabold">{formatPKR.compact(budget)}</div>
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Budget</span>
+        <div class="font-space text-lg font-bold">{formatPKR.compact(budget)}</div>
       </div>
     </div>
 
@@ -152,8 +152,8 @@
         <AlertTriangleIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Expenses</span>
-        <div class="font-space text-lg font-extrabold">{formatPKR.compact(totalExpenses)}</div>
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Expenses</span>
+        <div class="font-space text-lg font-bold">{formatPKR.compact(totalExpenses)}</div>
         {#if budget > 0}
           <p class="text-[10px] font-semibold opacity-80">{burnPct}% of budget</p>
         {/if}
@@ -170,8 +170,8 @@
         <ReceiptIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Received</span>
-        <div class="font-space text-lg font-extrabold">{formatPKR.compact(totalReceived)}</div>
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Received</span>
+        <div class="font-space text-lg font-bold">{formatPKR.compact(totalReceived)}</div>
         {#if budget > 0}
           <p class="text-[10px] font-semibold opacity-80">{collectedPct}% collected</p>
         {/if}
@@ -188,10 +188,10 @@
         <WalletIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">
+        <span class="/80 text-xs font-bold tracking-wider uppercase">
           {balance > 0 ? 'Balance Due' : 'Fully Paid'}
         </span>
-        <div class="font-space text-lg font-extrabold">{formatPKR.compact(balance)}</div>
+        <div class="font-space text-lg font-bold">{formatPKR.compact(balance)}</div>
       </div>
     </div>
 
@@ -205,8 +205,8 @@
         <ChartPieIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Profit</span>
-        <div class="font-space text-lg font-extrabold">{formatPKR.compact(profit)}</div>
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Profit</span>
+        <div class="font-space text-lg font-bold">{formatPKR.compact(profit)}</div>
         {#if totalReceived > 0}
           <p class="text-[10px] font-semibold opacity-80">{marginPct}% margin</p>
         {/if}
@@ -223,8 +223,8 @@
         <GaugeIcon class="h-5 w-5" />
       </div>
       <div class="space-y-0.5">
-        <span class="/80 text-xs font-extrabold tracking-wider uppercase">Budget Burn</span>
-        <div class="font-space text-lg font-extrabold">
+        <span class="/80 text-xs font-bold tracking-wider uppercase">Budget Burn</span>
+        <div class="font-space text-lg font-bold">
           {budget > 0 ? `${burnPct}%` : '—'}
         </div>
         <p class="text-[10px] font-semibold opacity-80">

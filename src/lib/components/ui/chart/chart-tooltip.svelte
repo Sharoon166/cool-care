@@ -73,7 +73,7 @@
 
 {#snippet TooltipLabel()}
   {#if formattedLabel}
-    <div class={cn('font-extrabold', labelClassName)}>
+    <div class={cn('font-bold', labelClassName)}>
       {#if typeof formattedLabel === 'function'}
         {@render formattedLabel()}
       {:else}
@@ -142,7 +142,7 @@
                 </span>
               </div>
               {#if item.value !== undefined}
-                <span class="font-mono font-extrabold text-foreground tabular-nums">
+                <span class="font-mono font-bold text-foreground tabular-nums">
                   {item.value.toLocaleString()}
                 </span>
               {/if}
