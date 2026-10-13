@@ -12,21 +12,3 @@ export const DATA_AVAILABILITY = {
   cutoffDate: new Date('2026-06-01'),
   message: 'Invoices and quotations before this date are not available in the portal.'
 } as const;
-
-export const PAYMENT_INFO = {
-  bank: {
-    bankName: 'HBL Bank Limited',
-    accountName: 'Cool Care Solutions',
-    accountNumber: 'PK12HABL1234567890123',
-    iban: 'PK12HABL1234567890123456789',
-    swiftCode: 'HABLPKKA'
-  },
-  jazzCash: {
-    accountNumber: '0336-3097147',
-    accountTitle: 'Allah Ditta Masih'
-  },
-  easyPaisa: {
-    accountNumber: '0336-3097147',
-    accountTitle: 'Allah Ditta Masih'
-  }
-} as const;

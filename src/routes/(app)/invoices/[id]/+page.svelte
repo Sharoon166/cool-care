@@ -221,7 +221,7 @@
       </div>
 
       <!-- Invoice Items -->
-      <div class="brutal-card rounded-3xl bg-card p-6">
+      <div class="md:brutal-card rounded-3xl bg-card p-4 md:p-6">
         <h3 class="mb-4 font-semibold">Items</h3>
         <Table>
           <TableHeader>

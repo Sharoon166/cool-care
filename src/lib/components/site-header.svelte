@@ -93,7 +93,7 @@
     <!-- Left: Logo & Desktop Brand -->
     <div class="flex items-center gap-6">
       <a href="/dashboard" class="flex items-center gap-2 font-display">
-        <img src="/logo.png" alt="Cool Care logo" class="h-9 w-auto" />
+        <img src="/logo-new.png" alt="Cool Care logo" class="h-9 w-auto" />
         <span class="text-xl font-bold tracking-tight text-foreground">Cool Care</span>
       </a>
 
@@ -225,7 +225,7 @@
     <!-- Header inside Drawer -->
     <div class="flex h-16 items-center justify-between border-b px-6">
       <div class="flex items-center gap-2">
-        <img src="/logo.png" alt="Cool Care logo" class="h-9 w-auto" />
+        <img src="/logo-new.png" alt="Cool Care logo" class="h-9 w-auto" />
         <span class="text-xl font-display font-bold tracking-tight text-foreground">Cool Care</span>
       </div>
       <Button

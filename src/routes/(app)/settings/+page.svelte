@@ -1,59 +1,91 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
-  import Button from '$lib/components/ui/button/button.svelte';
-  import { Input } from '$lib/components/ui/input';
-  import { Label } from '$lib/components/ui/label';
-  import { toast } from 'svelte-sonner';
-  import SaveIcon from '@tabler/icons-svelte/icons/device-floppy';
-  import UserIcon from '@tabler/icons-svelte/icons/user';
-  import LockIcon from '@tabler/icons-svelte/icons/lock';
-  import KeyIcon from '@tabler/icons-svelte/icons/key';
-  import PageHeader from '$lib/components/page-header.svelte';
-  import At from '@tabler/icons-svelte/icons/at';
-  import EyeIcon from '@tabler/icons-svelte/icons/eye';
-  import EyeOffIcon from '@tabler/icons-svelte/icons/eye-off';
+import { enhance } from '$app/forms';
+import Button from '$lib/components/ui/button/button.svelte';
+import { Input } from '$lib/components/ui/input';
+import { Label } from '$lib/components/ui/label';
+import { toast } from 'svelte-sonner';
+import SaveIcon from '@tabler/icons-svelte/icons/device-floppy';
+import UserIcon from '@tabler/icons-svelte/icons/user';
+import LockIcon from '@tabler/icons-svelte/icons/lock';
+import KeyIcon from '@tabler/icons-svelte/icons/key';
+import PageHeader from '$lib/components/page-header.svelte';
+import At from '@tabler/icons-svelte/icons/at';
+import EyeIcon from '@tabler/icons-svelte/icons/eye';
+import EyeOffIcon from '@tabler/icons-svelte/icons/eye-off';
+import BankIcon from '@tabler/icons-svelte/icons/building-bank';
+import SmartphoneIcon from '@tabler/icons-svelte/icons/device-mobile';
+import CreditCardIcon from '@tabler/icons-svelte/icons/credit-card';
 
-  let { data, form } = $props();
+let { data, form } = $props();
 
-  let loading = $state(false);
-  let activeTab = $state<'profile' | 'security'>('profile');
-  let showCurrentPassword = $state(false);
-  let showNewPassword = $state(false);
-  let showConfirmPassword = $state(false);
+let loading = $state(false);
+let activeTab = $state<'profile' | 'security' | 'payment'>('profile');
+let showCurrentPassword = $state(false);
+let showNewPassword = $state(false);
+let showConfirmPassword = $state(false);
 
-  // Profile form data
-  let profileData = $state({
-    name: '',
-    email: '',
-    username: ''
-  });
+// Profile form data
+let profileData = $state({
+  name: '',
+  email: '',
+  username: ''
+});
 
-  // Initialize profile data when component loads
-  $effect(() => {
-    if (data.user) {
-      profileData.name = data.user.name || '';
-      profileData.email = data.user.email || '';
-      profileData.username = data.user.username || '';
-    }
-  });
-
-  // Password form data
-  let passwordData = $state({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-
-  function resetPasswordForm() {
-    passwordData.currentPassword = '';
-    passwordData.newPassword = '';
-    passwordData.confirmPassword = '';
+// Initialize profile data when component loads
+$effect(() => {
+  if (data.user) {
+    profileData.name = data.user.name || '';
+    profileData.email = data.user.email || '';
+    profileData.username = data.user.username || '';
   }
+});
 
-  const tabs = [
-    { id: 'profile', label: 'Profile', icon: UserIcon },
-    { id: 'security', label: 'Security', icon: LockIcon }
-  ] as const;
+// Password form data
+let passwordData = $state({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+});
+
+function resetPasswordForm() {
+  passwordData.currentPassword = '';
+  passwordData.newPassword = '';
+  passwordData.confirmPassword = '';
+}
+
+// Payment settings form data
+let paymentData = $state({
+  bankName: '',
+  bankAccountName: '',
+  bankAccountNumber: '',
+  bankIban: '',
+  bankSwiftCode: '',
+  jazzCashAccountNumber: '',
+  jazzCashAccountTitle: '',
+  easyPaisaAccountNumber: '',
+  easyPaisaAccountTitle: ''
+});
+
+// Initialize payment data when component loads
+$effect(() => {
+  if (data.paymentSettings) {
+    paymentData.bankName = data.paymentSettings.bank?.bankName || '';
+    paymentData.bankAccountName = data.paymentSettings.bank?.accountName || '';
+    paymentData.bankAccountNumber = data.paymentSettings.bank?.accountNumber || '';
+    paymentData.bankIban = data.paymentSettings.bank?.iban || '';
+    paymentData.bankSwiftCode = data.paymentSettings.bank?.swiftCode || '';
+    paymentData.jazzCashAccountNumber = data.paymentSettings.jazzCash?.accountNumber || '';
+    paymentData.jazzCashAccountTitle = data.paymentSettings.jazzCash?.accountTitle || '';
+    paymentData.easyPaisaAccountNumber = data.paymentSettings.easyPaisa?.accountNumber || '';
+    paymentData.easyPaisaAccountTitle = data.paymentSettings.easyPaisa?.accountTitle || '';
+  }
+});
+
+const tabs = [
+  { id: 'profile', label: 'Profile', icon: UserIcon },
+  { id: 'security', label: 'Security', icon: LockIcon },
+  { id: 'payment', label: 'Payment', icon: CreditCardIcon }
+] as const;
 </script>
 
 <svelte:head>
@@ -72,10 +104,10 @@
         {@const Icon = tab.icon}
         <button
           onclick={() => (activeTab = tab.id)}
-          class="shrink-0 rounded-xl border-2 border-brutal p-4 text-left font-bold transition-all
+          class="shrink-0 rounded-xl border-2 border-brutal px-4 py-2 text-left font-bold transition-all
             {activeTab === tab.id
-              ? 'bg-primary text-primary-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
-              : 'bg-background hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}"
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-background'}"
         >
           <div class="flex items-center gap-3">
             <Icon class="h-5 w-5" />
@@ -336,6 +368,178 @@
               {:else}
                 <LockIcon class="mr-2 h-4 w-4" />
                 Change Password
+              {/if}
+            </Button>
+          </div>
+        </form>
+      </div>
+    {:else if activeTab === 'payment'}
+      <!-- Payment Settings -->
+      <div class="rounded-3xl brutal-card bg-card p-4 sm:p-8">
+        <div class="mb-6 border-b border-border/40 pb-4">
+          <h2 class="flex items-center gap-2 text-xl sm:text-2xl font-bold">
+            <CreditCardIcon class="h-5 w-5 sm:h-6 sm:w-6" />
+            Payment Details
+          </h2>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Configure payment methods displayed on invoices. Only filled fields will appear on PDFs.
+          </p>
+        </div>
+
+        <form
+          method="POST"
+          action="?/savePaymentSettings"
+          use:enhance={() => {
+            loading = true;
+            return async ({ result, update }) => {
+              loading = false;
+              if (result.type === 'success') {
+                toast.success('Payment settings saved successfully');
+              } else if (result.type === 'failure') {
+                toast.error('Failed to save payment settings');
+              }
+              await update();
+            };
+          }}
+          class="space-y-6"
+        >
+          <!-- Bank Details -->
+          <div class="space-y-6">
+            <h3 class="flex items-center gap-2 font-semibold text-lg">
+              <BankIcon class="h-5 w-5" />
+              Bank Transfer Details
+            </h3>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="space-y-2">
+                <Label for="bankName" class="font-bold">Bank Name</Label>
+                <Input
+                  id="bankName"
+                  name="bankName"
+                  type="text"
+                  bind:value={paymentData.bankName}
+                  placeholder="e.g., HBL Bank Limited"
+                  class="brutal"
+                />
+              </div>
+              <div class="space-y-2">
+                <Label for="bankAccountName" class="font-bold">Account Title</Label>
+                <Input
+                  id="bankAccountName"
+                  name="bankAccountName"
+                  type="text"
+                  bind:value={paymentData.bankAccountName}
+                  placeholder="e.g., Cool Care Solutions"
+                  class="brutal"
+                />
+              </div>
+              <div class="space-y-2 sm:col-span-2">
+                <Label for="bankAccountNumber" class="font-bold">Account Number</Label>
+                <Input
+                  id="bankAccountNumber"
+                  name="bankAccountNumber"
+                  type="text"
+                  bind:value={paymentData.bankAccountNumber}
+                  placeholder="e.g., PK12HABL1234567890123"
+                  class="brutal"
+                />
+              </div>
+              <div class="space-y-2">
+                <Label for="bankIban" class="font-bold">IBAN</Label>
+                <Input
+                  id="bankIban"
+                  name="bankIban"
+                  type="text"
+                  bind:value={paymentData.bankIban}
+                  placeholder="e.g., PK12HABL1234567890123456789"
+                  class="brutal"
+                />
+              </div>
+              <div class="space-y-2">
+                <Label for="bankSwiftCode" class="font-bold">SWIFT Code</Label>
+                <Input
+                  id="bankSwiftCode"
+                  name="bankSwiftCode"
+                  type="text"
+                  bind:value={paymentData.bankSwiftCode}
+                  placeholder="e.g., HABLPKKA"
+                  class="brutal"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- JazzCash -->
+          <div class="space-y-6 border-t border-border/40 pt-6">
+            <h3 class="flex items-center gap-2 font-semibold text-lg">
+              <SmartphoneIcon class="h-5 w-5" />
+              JazzCash
+            </h3>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="space-y-2">
+                <Label for="jazzCashAccountNumber" class="font-bold">Account Number</Label>
+                <Input
+                  id="jazzCashAccountNumber"
+                  name="jazzCashAccountNumber"
+                  type="text"
+                  bind:value={paymentData.jazzCashAccountNumber}
+                  placeholder="e.g., 0336-3097147"
+                  class="brutal"
+                />
+              </div>
+              <div class="space-y-2">
+                <Label for="jazzCashAccountTitle" class="font-bold">Account Title</Label>
+                <Input
+                  id="jazzCashAccountTitle"
+                  name="jazzCashAccountTitle"
+                  type="text"
+                  bind:value={paymentData.jazzCashAccountTitle}
+                  placeholder="e.g., Allah Ditta Masih"
+                  class="brutal"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Easypaisa -->
+          <div class="space-y-6 border-t border-border/40 pt-6">
+            <h3 class="flex items-center gap-2 font-semibold text-lg">
+              <SmartphoneIcon class="h-5 w-5" />
+              Easypaisa
+            </h3>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="space-y-2">
+                <Label for="easyPaisaAccountNumber" class="font-bold">Account Number</Label>
+                <Input
+                  id="easyPaisaAccountNumber"
+                  name="easyPaisaAccountNumber"
+                  type="text"
+                  bind:value={paymentData.easyPaisaAccountNumber}
+                  placeholder="e.g., 0336-3097147"
+                  class="brutal"
+                />
+              </div>
+              <div class="space-y-2">
+                <Label for="easyPaisaAccountTitle" class="font-bold">Account Title</Label>
+                <Input
+                  id="easyPaisaAccountTitle"
+                  name="easyPaisaAccountTitle"
+                  type="text"
+                  bind:value={paymentData.easyPaisaAccountTitle}
+                  placeholder="e.g., Allah Ditta Masih"
+                  class="brutal"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-4">
+            <Button type="submit" disabled={loading} class="brutal">
+              {#if loading}
+                <div class="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                Saving...
+              {:else}
+                <SaveIcon class="mr-2 h-4 w-4" />
+                Save Payment Settings
               {/if}
             </Button>
           </div>

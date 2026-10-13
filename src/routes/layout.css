@@ -235,7 +235,7 @@
 /* Print styles */
 @media print {
   /* Hide logo images during printing */
-  img[src='/logo.png'],
+  img[src='/logo-new.png'],
   img[src='/logo-lg.png'],
   img[alt*='logo' i],
   img[alt*='Cool Care logo' i] {

@@ -36,7 +36,7 @@
             class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
             <Avatar.Root class="size-8 rounded-lg grayscale">
-              <Avatar.Image src="/logo.png" alt={user.name} />
+              <Avatar.Image src="/logo-new.png" alt={user.name} />
               <Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
             </Avatar.Root>
             <div class="grid flex-1 text-start text-sm leading-tight">

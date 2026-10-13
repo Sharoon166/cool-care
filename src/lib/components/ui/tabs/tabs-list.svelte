@@ -9,7 +9,9 @@
   bind:ref
   data-slot="tabs-list"
   class={cn(
-    'inline-flex h-11 w-full items-center justify-center rounded-[12px] brutal-border bg-muted p-1 text-muted-foreground brutal-shadow-sm',
+    'flex h-11 w-full items-center justify-start overflow-x-auto rounded-[12px] brutal-border bg-muted p-1 text-muted-foreground brutal-shadow-sm',
+    'sm:inline-flex sm:justify-center',
+    '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
     className
   )}
   {...restProps}

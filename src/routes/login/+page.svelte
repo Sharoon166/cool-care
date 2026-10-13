@@ -85,7 +85,7 @@
 <div class="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
   <div class="w-full max-w-md space-y-8">
     <div class="text-center">
-      <img class="mx-auto h-12 w-auto" src="/logo.png" alt="Cool Care" />
+      <img class="mx-auto h-12 w-auto" src="/logo-new.png" alt="Cool Care" />
       <h2 class="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
       <p class="mt-2 text-sm text-muted-foreground">Access your Cool Care dashboard</p>
     </div>

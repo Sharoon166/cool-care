@@ -100,7 +100,7 @@
 </script>
 
 <Tabs.Root value="invoices" class="space-y-6">
-  <Tabs.List class="grid w-full max-w-fit grid-cols-4 gap-2 *:cursor-pointer">
+  <Tabs.List class="md:w-fit  *:cursor-pointer">
     <Tabs.Trigger value="invoices">Invoices ({invoices.length})</Tabs.Trigger>
     <Tabs.Trigger value="quotations">Quotations ({quotations.length})</Tabs.Trigger>
     <Tabs.Trigger value="payments">Payments ({payments.length})</Tabs.Trigger>

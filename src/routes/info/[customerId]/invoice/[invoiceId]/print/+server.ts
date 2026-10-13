@@ -374,7 +374,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
     // doc.save().fillColor('#fff');
     // drawHexagon(doc, cx, cy, 18);
     // doc.fill().restore();
-    // const logoPath = path.resolve('static/logo.png');
+    // const logoPath = path.resolve('static/logo-new.png');
     // try {
     //   doc.image(logoPath, cx - 12, cy - 12, { width: 24 });
     // } catch {

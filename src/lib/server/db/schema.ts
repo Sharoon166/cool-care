@@ -190,6 +190,19 @@ export const projectPayments = pgTable('project_payments', {
   createdBy: text('created_by')
 });
 
+export const settings = pgTable('settings', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => createId()),
+
+  key: varchar('key', { length: 100 }).notNull().unique(),
+  value: jsonb('value').notNull(),
+  description: text('description'),
+
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
 export type Invoice = typeof invoices.$inferSelect;
@@ -197,6 +210,8 @@ export type NewInvoice = typeof invoices.$inferInsert;
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type InvoiceCounter = typeof invoiceCounters.$inferSelect;
+export type Settings = typeof settings.$inferSelect;
+export type NewSettings = typeof settings.$inferInsert;
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
 export type Expense = typeof expenses.$inferSelect;

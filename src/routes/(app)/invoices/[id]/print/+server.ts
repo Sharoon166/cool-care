@@ -1,10 +1,10 @@
 import { db } from '$lib/server/db';
-import { invoices, customers } from '$lib/server/db/schema';
+import { invoices, customers, settings } from '$lib/server/db/schema';
 import { fail } from '@sveltejs/kit';
 import { eq, isNull, and } from 'drizzle-orm';
 import PDFDocument from 'pdfkit';
 // import QRCode from 'qrcode';
-import { COMPANY_INFO, PAYMENT_INFO } from '$lib/constants';
+import { COMPANY_INFO } from '$lib/constants';
 // import path from 'path';
 import { LatoRegular, LatoItalic, MontserratBold, MontserratExtraBold } from '$lib/fonts';
 import type { RequestHandler } from './$types';
@@ -85,18 +85,46 @@ export const GET: RequestHandler = async ({ params, url }) => {
     const pageHeight = 842;
     const margin = 50;
 
+    // Fetch payment settings from database
+    const [paymentSettingsRow] = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, 'payment_details'))
+      .limit(1);
+
+    const paymentSettings = paymentSettingsRow?.value as {
+      bank?: { bankName?: string; accountName?: string; accountNumber?: string; iban?: string; swiftCode?: string };
+      jazzCash?: { accountNumber?: string; accountTitle?: string };
+      easyPaisa?: { accountNumber?: string; accountTitle?: string };
+    } || { bank: {}, jazzCash: {}, easyPaisa: {} };
+
     const drawPageDecorations = () => {
       doc.rect(0, 0, pageWidth, 15).fill('#1a2b2b'); // Top band at absolute 0
       doc.rect(0, pageHeight - 55, pageWidth, 55).fill('#1a2b2b'); // Bottom band
 
-      // Payment details line (centered as single line)
-      const jcText = `JazzCash: ${PAYMENT_INFO.jazzCash.accountNumber} (${PAYMENT_INFO.jazzCash.accountTitle})`;
-      const epText = `Easypaisa: ${PAYMENT_INFO.easyPaisa.accountNumber} (${PAYMENT_INFO.easyPaisa.accountTitle})`;
-      doc.font('L-Reg').fontSize(7).fillColor('#fff');
-      doc.text(`PAYMENT DETAILS    ${jcText}  |  ${epText}`, 0, pageHeight - 48, {
-        width: pageWidth,
-        align: 'center'
-      });
+      // Build payment details line from database settings
+      const paymentLines: string[] = [];
+      
+      if (paymentSettings.bank?.accountNumber) {
+        const bankName = paymentSettings.bank.bankName || 'Bank';
+        paymentLines.push(`${bankName}: ${paymentSettings.bank.accountNumber}`);
+      }
+      if (paymentSettings.jazzCash?.accountNumber) {
+        const title = paymentSettings.jazzCash.accountTitle ? ` (${paymentSettings.jazzCash.accountTitle})` : '';
+        paymentLines.push(`JazzCash: ${paymentSettings.jazzCash.accountNumber}${title}`);
+      }
+      if (paymentSettings.easyPaisa?.accountNumber) {
+        const title = paymentSettings.easyPaisa.accountTitle ? ` (${paymentSettings.easyPaisa.accountTitle})` : '';
+        paymentLines.push(`Easypaisa: ${paymentSettings.easyPaisa.accountNumber}${title}`);
+      }
+
+      if (paymentLines.length > 0) {
+        doc.font('L-Reg').fontSize(7).fillColor('#fff');
+        doc.text(`PAYMENT DETAILS    ${paymentLines.join('  |  ')}`, 0, pageHeight - 48, {
+          width: pageWidth,
+          align: 'center'
+        });
+      }
 
       // Address line (centered below)
       doc
@@ -203,8 +231,10 @@ export const GET: RequestHandler = async ({ params, url }) => {
         : 0;
       const rowHeight = Math.max(descHeight + notesHeight + 10, 25) + 10;
 
-      // Check if we need a new page
-      if (y + rowHeight > pageHeight - 200) {
+      const CONTENT_BOTTOM = pageHeight - 70; // footer band starts at 787, keep ~17pt gap
+
+      // in the item loop
+      if (y + rowHeight > CONTENT_BOTTOM) {
         doc.addPage();
         drawPageDecorations();
         y = 50;
@@ -371,7 +401,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
     // doc.save().fillColor('#fff');
     // drawHexagon(doc, cx, cy, 18);
     // doc.fill().restore();
-    // const logoPath = path.resolve('static/logo.png');
+    // const logoPath = path.resolve('static/logo-new.png');
     // try {
     //   doc.image(logoPath, cx - 12, cy - 12, { width: 24 });
     // } catch {

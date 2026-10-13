@@ -36,7 +36,7 @@
 <div class="border-b-4 border-brutal bg-card">
   <div class="container mx-auto px-4 py-6">
     <div class="flex items-center gap-2 sm:gap-3">
-      <img src="/logo.png" alt="Company Logo" class="h-10 sm:h-14 w-auto" />
+      <img src="/logo-new.png" alt="Company Logo" class="h-10 sm:h-14 w-auto" />
 
       <div class="min-w-0">
         <h1 class="text-lg sm:text-2xl font-semibold truncate">

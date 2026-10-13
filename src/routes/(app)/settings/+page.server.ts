@@ -5,6 +5,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad, Actions } from './$types';
+import { getPaymentSettings, savePaymentSettings, paymentSettingsSchema } from '$lib/server/settings-actions';
 
 const updateProfileSchema = z
   .object({
@@ -37,8 +38,11 @@ export const load: PageServerLoad = async ({ locals }) => {
     throw redirect(302, '/login');
   }
 
+  const paymentSettings = await getPaymentSettings();
+
   return {
-    user: locals.user
+    user: locals.user,
+    paymentSettings
   };
 };
 
@@ -157,6 +161,50 @@ export const actions: Actions = {
         });
       }
       return fail(500, { error: 'Failed to change password' });
+    }
+  },
+
+  savePaymentSettings: async ({ request, locals }) => {
+    if (!locals.user) {
+      return fail(401, { error: 'Unauthorized' });
+    }
+
+    try {
+      const formData = await request.formData();
+      
+      // Parse the form data into the payment settings structure
+      const bankName = formData.get('bankName') as string || '';
+      const bankAccountName = formData.get('bankAccountName') as string || '';
+      const bankAccountNumber = formData.get('bankAccountNumber') as string || '';
+      const bankIban = formData.get('bankIban') as string || '';
+      const bankSwiftCode = formData.get('bankSwiftCode') as string || '';
+      const jazzCashAccountNumber = formData.get('jazzCashAccountNumber') as string || '';
+      const jazzCashAccountTitle = formData.get('jazzCashAccountTitle') as string || '';
+      const easyPaisaAccountNumber = formData.get('easyPaisaAccountNumber') as string || '';
+      const easyPaisaAccountTitle = formData.get('easyPaisaAccountTitle') as string || '';
+
+      const paymentData = {
+        bank: {
+          bankName: bankName || undefined,
+          accountName: bankAccountName || undefined,
+          accountNumber: bankAccountNumber || undefined,
+          iban: bankIban || undefined,
+          swiftCode: bankSwiftCode || undefined
+        },
+        jazzCash: {
+          accountNumber: jazzCashAccountNumber || undefined,
+          accountTitle: jazzCashAccountTitle || undefined
+        },
+        easyPaisa: {
+          accountNumber: easyPaisaAccountNumber || undefined,
+          accountTitle: easyPaisaAccountTitle || undefined
+        }
+      };
+
+      return await savePaymentSettings(paymentData);
+    } catch (error) {
+      console.error('Save payment settings error:', error);
+      return fail(500, { error: 'Failed to save payment settings' });
     }
   }
 };
