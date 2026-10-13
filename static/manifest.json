@@ -1,24 +1,50 @@
 {
+  "id": "/",
   "name": "Cool Care",
   "short_name": "Cool Care",
   "description": "Business management dashboard",
-  "start_url": "/",
+  "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0f172a",
-  "orientation": "portrait-primary",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#fff9f0",
+  "theme_color": "#1a2b2b",
+  "categories": ["business", "finance", "productivity"],
   "icons": [
+    { "src": "/icons/logo-new.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/logo-new.png", "sizes": "512x512", "type": "image/png" },
     {
-      "src": "/logo-bg.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/logo-lg.png",
+      "src": "/icons/logo-new.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New invoice",
+      "short_name": "Invoice",
+      "url": "/invoices/new?type=invoice",
+      "icons": [{ "src": "/icons/logo-new.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "New quotation",
+      "short_name": "Quote",
+      "url": "/invoices/new?type=quotation",
+      "icons": [{ "src": "/icons/logo-new.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "New customer",
+      "short_name": "Customer",
+      "url": "/customers/new",
+      "icons": [{ "src": "/icons/logo-new.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Outstanding balances",
+      "short_name": "Outstanding",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/logo-new.png", "sizes": "192x192" }]
     }
   ]
 }

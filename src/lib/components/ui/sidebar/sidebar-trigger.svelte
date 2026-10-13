@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { cn } from '$lib/utils.js';
+  import { cn, type WithElementRef } from '$lib/utils.js';
   import PanelLeftIcon from '@lucide/svelte/icons/panel-left';
+  import type { HTMLAttributes } from 'svelte/elements';
   import { useSidebar } from './context.svelte.js';
 
-  let { class: className, ...restProps } = $props();
+  let { class: className, ...restProps }: WithElementRef<HTMLAttributes<HTMLButtonElement>> =
+    $props();
 
   const sidebar = useSidebar();
 </script>

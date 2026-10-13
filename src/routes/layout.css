@@ -58,7 +58,7 @@
   --spacing: 0.25rem;
 
   --font-fira: 'Outfit', sans-serif;
-  --font-space: 'Space Grotesk', sans-serif;
+  --font-space: monospace, 'Space Grotesk', sans-serif;
   --font-display: 'Tenor Sans', sans-serif;
 }
 
